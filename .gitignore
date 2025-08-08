@@ -1,0 +1,11 @@
+# Generated Nomad job files (from templates)
+*.nomad
+!*.nomad.template
+
+# Logs
+*.log
+deployment.log
+
+# Temporary files
+*.tmp
+.DS_Store
