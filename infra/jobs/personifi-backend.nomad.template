@@ -35,6 +35,7 @@ EOF
         labels = {
           "traefik.enable" = "true"
           "traefik.http.routers.personifi.rule" = "PathPrefix(`/api`)"
+          "traefik.http.routers.personifi.priority" = "100"
           "traefik.http.services.personifi.loadbalancer.server.port" = "8080"
         }
         
