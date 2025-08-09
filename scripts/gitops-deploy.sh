@@ -4,7 +4,7 @@
 
 DEPLOY_REPO="/opt/personifi-deployments"
 LOG_FILE="/var/log/gitops-deploy.log"
-NOMAD_JOBS_DIR="/opt/nomad-jobs"
+NOMAD_JOBS_DIR="/opt/nomad/jobs"
 
 # Colors for output
 RED='\033[0;31m'
@@ -78,12 +78,12 @@ if [ "$LOCAL_COMMIT" != "$REMOTE_COMMIT" ]; then
         info "  Source commit: $COMMIT_SHA"
         
         # Deploy backend if template exists
-        if [ -f "/opt/BackendMastery/infra/jobs/personifi-backend.nomad.template" ]; then
+        if [ -f "/opt/personifi-deployments/infra/jobs/personifi-backend.nomad.template" ]; then
             info "🚀 Deploying backend..."
             
             # Generate Nomad job file from template
             sed "s|IMAGE_PLACEHOLDER|$BACKEND_IMAGE|g" \
-                "/opt/BackendMastery/infra/jobs/personifi-backend.nomad.template" > \
+                "/opt/personifi-deployments/infra/jobs/personifi-backend.nomad.template" > \
                 "$NOMAD_JOBS_DIR/personifi-backend.nomad"
             
             # Deploy with Nomad
@@ -105,16 +105,16 @@ if [ "$LOCAL_COMMIT" != "$REMOTE_COMMIT" ]; then
                 exit 1
             fi
         else
-            warn "Backend template not found at /opt/BackendMastery/infra/jobs/personifi-backend.nomad.template"
+            warn "Backend template not found at /opt/personifi-deployments/infra/jobs/personifi-backend.nomad.template"
         fi
         
         # Deploy frontend if template exists
-        if [ -f "/opt/BackendMastery/infra/jobs/personifi-frontend.nomad.template" ]; then
+        if [ -f "/opt/personifi-deployments/infra/jobs/personifi-frontend.nomad.template" ]; then
             info "🌐 Deploying frontend..."
             
             # Generate Nomad job file from template
             sed "s|IMAGE_PLACEHOLDER|$FRONTEND_IMAGE|g" \
-                "/opt/BackendMastery/infra/jobs/personifi-frontend.nomad.template" > \
+                "/opt/personifi-deployments/infra/jobs/personifi-frontend.nomad.template" > \
                 "$NOMAD_JOBS_DIR/personifi-frontend.nomad"
             
             # Deploy with Nomad
@@ -136,7 +136,7 @@ if [ "$LOCAL_COMMIT" != "$REMOTE_COMMIT" ]; then
                 exit 1
             fi
         else
-            warn "Frontend template not found at /opt/BackendMastery/infra/jobs/personifi-frontend.nomad.template"
+            warn "Frontend template not found at /opt/personifi-deployments/infra/jobs/personifi-frontend.nomad.template"
         fi
         
         success "🎉 Deployment complete: $DEPLOYED_AT"
