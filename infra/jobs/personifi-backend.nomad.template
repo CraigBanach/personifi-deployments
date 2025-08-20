@@ -34,9 +34,20 @@ EOF
         # Docker labels for Traefik discovery
         labels = {
           "traefik.enable" = "true"
-          "traefik.http.routers.personifi.rule" = "PathPrefix(`/api`)"
-          "traefik.http.routers.personifi.priority" = "100"
-          "traefik.http.services.personifi.loadbalancer.server.port" = "8080"
+          
+          # HTTP router (will redirect to HTTPS)
+          "traefik.http.routers.personifi-api.rule" = "Host(`personifi.xyz`) && PathPrefix(`/api`)"
+          "traefik.http.routers.personifi-api.priority" = "100"
+          
+          # HTTPS router
+          "traefik.http.routers.personifi-api-secure.rule" = "Host(`personifi.xyz`) && PathPrefix(`/api`)"
+          "traefik.http.routers.personifi-api-secure.entrypoints" = "websecure"
+          "traefik.http.routers.personifi-api-secure.tls" = "true"
+          "traefik.http.routers.personifi-api-secure.tls.certresolver" = "letsencrypt"
+          "traefik.http.routers.personifi-api-secure.priority" = "100"
+          
+          # Service configuration
+          "traefik.http.services.personifi-api.loadbalancer.server.port" = "8080"
         }
         
         auth {
