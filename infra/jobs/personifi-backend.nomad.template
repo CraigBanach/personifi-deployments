@@ -59,7 +59,7 @@ EOF
       env {
         ASPNETCORE_ENVIRONMENT = "Production"
         ASPNETCORE_URLS = "http://0.0.0.0:8080"
-        Auth0__Domain = "https://dev-ga2rkd7xxfzornug.us.auth0.com"
+        Auth0__Domain = "https://auth.personifi.xyz"
         Auth0__Audience = "personifi-backend-api"
       }
 
