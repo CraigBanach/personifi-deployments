@@ -92,3 +92,7 @@ tail \-f /var/log/gitops-deploy.log
 | /opt/personifi-deployments/.secrets.env | gitops | **NEW:** Non-committed file storing application secrets (DB, Docker). |
 | /opt/gitops                             | gitops | Home directory for the GitOps user.                                   |
 | /etc/nomad.d/nomad.hcl                  | root   | The main configuration file for the Nomad agent.                      |
+
+---
+
+Need to document the traefik config file
