@@ -157,7 +157,7 @@ fi
 if [ -f "$DEPLOY_DIR/infra/traefik/traefik.yml" ]; then
     echo "Staging Traefik configuration..."
     mkdir -p /etc/traefik
-    cp "$DEPLOY_DIR/infra/traefik/traefik.yml" /etc/traefik/traefik.yml
+    cp "$DEPLOY_DIR/infra/traefik/traefik.yml" "$DEPLOY_DIR/config/traefik.yml"
 fi
 
 # Enable and Start Nomad
@@ -224,3 +224,6 @@ nomad node status
 echo ""
 echo "GitOps Timer Status:"
 systemctl status gitops-deploy.timer --no-pager
+
+echo -e "\n${RED}!!! ACTION REQUIRED !!!${NC}"
+echo "Update the email address in $DEPLOY_DIR/config/traefik.yml"
