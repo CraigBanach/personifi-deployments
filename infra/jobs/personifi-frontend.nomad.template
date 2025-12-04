@@ -15,6 +15,7 @@ job "personifi-frontend" {
         data = <<EOF
 AUTH0_SECRET="{{ with nomadVar "personifi/auth0-frontend" }}{{ .auth0_secret }}{{ end }}"
 AUTH0_CLIENT_SECRET="{{ with nomadVar "personifi/auth0-frontend" }}{{ .auth0_client_secret }}{{ end }}"
+NEXT_PUBLIC_POSTHOG_KEY="{{ with nomadVar "personifi/posthog" }}{{ .posthog_key }}{{ end }}"
 EOF
         destination = "local/auth.env"
         env         = true
@@ -50,6 +51,7 @@ EOF
         AUTH0_CLIENT_ID = "VLPgXIfdcsqfxOEIAgOjq47gBmZ9yA5U"
         AUTH0_SCOPE = "openid profile email read:balances transaction:create offline_access"
         AUTH0_AUDIENCE = "personifi-backend-api"
+        NEXT_PUBLIC_POSTHOG_HOST="https://eu.i.posthog.com"
       }
     }
   }

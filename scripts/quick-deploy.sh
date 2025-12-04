@@ -61,6 +61,7 @@ source $SECRETS_FILE
 TEMP_GHCR="/tmp/ghcr-creds.json"
 TEMP_DB="/tmp/db-conn.json"
 TEMP_AUTH0="/tmp/auth0-creds.json"
+TEMP_POSTHOG="/tmp/posthog.json"
 
 # --- 3. Update Nomad Secrets (Hides complex JSON logic) ---
 
@@ -99,6 +100,16 @@ cat <<EOD > $TEMP_AUTH0
 EOD
 nomad var put personifi/auth0-frontend @$TEMP_AUTH0 || error "Failed to put database secret."
 
+# Posthog Secrets
+log "   -> Updating Nomad var personifi/posthog..."
+cat <<EOD > $TEMP_POSTHOG
+{
+  "Items": {
+    "poshog_key": "$POSTHOG_KEY",
+  }
+}
+EOD
+nomad var put personifi/posthog @$TEMP_POSTHOG || error "Failed to put posthog secret."
 
 # --- 4. Deploy Jobs ---
 
