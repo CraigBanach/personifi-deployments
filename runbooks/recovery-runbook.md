@@ -56,6 +56,10 @@ The automated deployment requires secrets that cannot be stored in the Git repos
    AUTH0_CLIENT_SECRET="yourAuth0ClientSecret"
    AUTH0_SECRET="yourAuth0Secret"
 
+   # Credential for Posthog
+
+   POSTHOG_KEY="yourPosthogKey"
+
 ### **Step 3: Run the Quick Deployment Script (First-Time or Re-Deploy)**
 
 This is the shortcut. It automatically sets Nomad variables, templates jobs, and runs all services.
