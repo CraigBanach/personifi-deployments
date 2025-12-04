@@ -15,7 +15,7 @@ job "personifi-frontend" {
         data = <<EOF
 AUTH0_SECRET="{{ with nomadVar "personifi/auth0-frontend" }}{{ .auth0_secret }}{{ end }}"
 AUTH0_CLIENT_SECRET="{{ with nomadVar "personifi/auth0-frontend" }}{{ .auth0_client_secret }}{{ end }}"
-NEXT_PUBLIC_POSTHOG_KEY="{{ with nomadVar "personifi/posthog" }}{{ .posthog_key }}{{ end }}"
+POSTHOG_KEY="{{ with nomadVar "personifi/posthog" }}{{ .posthog_key }}{{ end }}"
 EOF
         destination = "local/auth.env"
         env         = true
