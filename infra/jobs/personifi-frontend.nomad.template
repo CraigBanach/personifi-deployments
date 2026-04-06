@@ -16,6 +16,8 @@ job "personifi-frontend" {
 AUTH0_SECRET="{{ with nomadVar "personifi/auth0-frontend" }}{{ .auth0_secret }}{{ end }}"
 AUTH0_CLIENT_SECRET="{{ with nomadVar "personifi/auth0-frontend" }}{{ .auth0_client_secret }}{{ end }}"
 POSTHOG_KEY="{{ with nomadVar "personifi/posthog" }}{{ .posthog_key }}{{ end }}"
+KIT_API_KEY="{{ with nomadVar "personifi/kit" }}{{ .kit_api_key }}{{ end }}"
+KIT_FORM_ID="{{ with nomadVar "personifi/kit" }}{{ .kit_form_id }}{{ end }}"
 EOF
         destination = "local/auth.env"
         env         = true
