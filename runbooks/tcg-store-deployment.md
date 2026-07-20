@@ -30,6 +30,7 @@ The quick deploy script creates these directories:
 /opt/tcg-store/images
 /opt/tcg-store/backups/postgres
 /opt/tcg-store/backups/media
+/opt/tcg-store/appsettings.json
 ```
 
 ## Deploy
