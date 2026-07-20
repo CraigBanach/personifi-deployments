@@ -31,8 +31,9 @@ mkdir -p /opt/tcg-store/data-protection-keys /opt/tcg-store/images /opt/tcg-stor
 if [ ! -s /opt/tcg-store/appsettings.json ]; then
     printf '{}\n' > /opt/tcg-store/appsettings.json
 fi
-chmod 666 /opt/tcg-store/appsettings.json
-chmod -R 777 /opt/tcg-store/data-protection-keys /opt/tcg-store/images
+chown -R 108:110 /opt/tcg-store/appsettings.json /opt/tcg-store/data-protection-keys /opt/tcg-store/images 2>/dev/null || true
+chmod 664 /opt/tcg-store/appsettings.json
+chmod -R 775 /opt/tcg-store/data-protection-keys /opt/tcg-store/images
 mkdir -p "$NOMAD_JOBS_DIR"
 
 TEMP_DB="/tmp/tcg-store-db-vars.json"
