@@ -28,10 +28,14 @@ The quick deploy script creates these directories:
 ```bash
 /opt/tcg-store/data-protection-keys
 /opt/tcg-store/images
+/opt/tcg-store/images/uploaded
+/opt/tcg-store/files
 /opt/tcg-store/backups/postgres
 /opt/tcg-store/backups/media
 /opt/tcg-store/appsettings.json
 ```
+
+`/opt/tcg-store/images/uploaded` is required by nopCommerce Roxy Fileman (`FILES_ROOT=/images/uploaded`). If it is missing under the persisted images mount, installation can fail while activating `RoxyFilemanFileProvider`.
 
 ## Deploy
 
@@ -68,9 +72,18 @@ The first pass intentionally uses the normal nopCommerce installer rather than a
 1. Visit `https://craigscards.co.uk/install` after DNS and Traefik are ready.
 2. Select PostgreSQL.
 3. Use the direct Neon host, database, username, and password.
-4. Complete install.
-5. Restart the Nomad job.
-6. Keep the default nopCommerce theme until the store is stable.
+4. Leave `Create database if it doesn't exist` unchecked for Neon.
+5. Leave sample data unchecked unless deliberately testing demo catalog content.
+6. Complete install and let nopCommerce restart itself.
+7. Keep the default nopCommerce theme until the store is stable.
+
+Before retrying a failed install against Neon, reset the schema and extension:
+
+```sql
+DROP SCHEMA public CASCADE;
+CREATE SCHEMA public;
+CREATE EXTENSION IF NOT EXISTS citext;
+```
 
 ## Backup
 
