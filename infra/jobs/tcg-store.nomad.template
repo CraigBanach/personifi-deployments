@@ -31,8 +31,13 @@ EOF
         labels = {
           "traefik.enable" = "true"
 
-          "traefik.http.routers.tcg-store.rule" = "Host(`craigscards.co.uk`) || Host(`www.craigscards.co.uk`)"
+          "traefik.http.routers.tcg-store.rule" = "Host(`staging.craigscards.co.uk`)"
           "traefik.http.routers.tcg-store.entrypoints" = "web"
+
+          "traefik.http.routers.tcg-store-secure.rule" = "Host(`staging.craigscards.co.uk`)"
+          "traefik.http.routers.tcg-store-secure.entrypoints" = "websecure"
+          "traefik.http.routers.tcg-store-secure.tls" = "true"
+          "traefik.http.routers.tcg-store-secure.tls.certresolver" = "letsencrypt"
 
           "traefik.http.services.tcg-store.loadbalancer.server.port" = "80"
         }
