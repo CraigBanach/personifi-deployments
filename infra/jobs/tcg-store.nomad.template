@@ -7,18 +7,6 @@ job "tcg-store" {
       port "http" {}
     }
 
-    service {
-      name = "tcg-store"
-      port = "http"
-
-      check {
-        type     = "http"
-        path     = "/"
-        interval = "30s"
-        timeout  = "5s"
-      }
-    }
-
     task "nopcommerce" {
       driver = "docker"
 
@@ -37,8 +25,7 @@ EOF
 
         volumes = [
           "/opt/tcg-store/app-data:/app/App_Data",
-          "/opt/tcg-store/images:/app/wwwroot/images",
-          "/opt/tcg-store/theme:/app/Themes/TcgStore:ro"
+          "/opt/tcg-store/images:/app/wwwroot/images"
         ]
 
         labels = {
@@ -46,11 +33,6 @@ EOF
 
           "traefik.http.routers.tcg-store.rule" = "Host(`craigscards.co.uk`) || Host(`www.craigscards.co.uk`)"
           "traefik.http.routers.tcg-store.entrypoints" = "web"
-
-          "traefik.http.routers.tcg-store-secure.rule" = "Host(`craigscards.co.uk`) || Host(`www.craigscards.co.uk`)"
-          "traefik.http.routers.tcg-store-secure.entrypoints" = "websecure"
-          "traefik.http.routers.tcg-store-secure.tls" = "true"
-          "traefik.http.routers.tcg-store-secure.tls.certresolver" = "letsencrypt"
 
           "traefik.http.services.tcg-store.loadbalancer.server.port" = "80"
         }

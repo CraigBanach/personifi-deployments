@@ -27,7 +27,7 @@ source "$SECRETS_FILE"
 : "${TCG_DATABASE_CONNECTION_STRING_DIRECT:?Set TCG_DATABASE_CONNECTION_STRING_DIRECT in $SECRETS_FILE}"
 : "${TCG_DATABASE_CONNECTION_STRING_POOLED:?Set TCG_DATABASE_CONNECTION_STRING_POOLED in $SECRETS_FILE}"
 
-mkdir -p /opt/tcg-store/app-data /opt/tcg-store/images /opt/tcg-store/backups/postgres /opt/tcg-store/backups/media /opt/tcg-store/theme
+mkdir -p /opt/tcg-store/app-data /opt/tcg-store/images /opt/tcg-store/backups/postgres /opt/tcg-store/backups/media
 mkdir -p "$NOMAD_JOBS_DIR"
 
 TEMP_DB="/tmp/tcg-store-db-vars.json"
@@ -40,7 +40,7 @@ cat > "$TEMP_DB" <<EOD
 }
 EOD
 
-nomad var put tcg-store/database @"$TEMP_DB"
+nomad var put -force tcg-store/database @"$TEMP_DB"
 rm -f "$TEMP_DB"
 
 sed "s|IMAGE_PLACEHOLDER|$TCG_IMAGE|g" \
