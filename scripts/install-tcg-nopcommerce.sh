@@ -44,10 +44,13 @@ select = re.search(r'<select[^>]+name="' + re.escape(select_name) + r'"[^>]*>(.*
 if not select:
     sys.exit(0)
 
-for option in re.finditer(r'<option[^>]+value="([^"]*)"[^>]*>(.*?)</option>', select.group(1), re.I | re.S):
+for option in re.finditer(r'<option\b([^>]*)>(.*?)</option>', select.group(1), re.I | re.S):
+    value_match = re.search(r'value="([^"]*)"', option.group(1), re.I | re.S)
+    if not value_match:
+        continue
     text = html.unescape(re.sub(r'<[^>]+>', '', option.group(2)).strip())
     if text == wanted or wanted in text:
-        print(html.unescape(option.group(1)))
+        print(html.unescape(value_match.group(1)))
         sys.exit(0)
 PY
 }
@@ -64,13 +67,16 @@ select = re.search(r'<select[^>]+name="' + re.escape(select_name) + r'"[^>]*>(.*
 if not select:
     sys.exit(0)
 
-options = list(re.finditer(r'<option[^>]+value="([^"]*)"[^>]*>(.*?)</option>', select.group(1), re.I | re.S))
+options = list(re.finditer(r'<option\b([^>]*)>(.*?)</option>', select.group(1), re.I | re.S))
 for option in options:
-    if 'selected' in option.group(0).lower():
-        print(html.unescape(option.group(1)))
+    value_match = re.search(r'value="([^"]*)"', option.group(1), re.I | re.S)
+    if value_match and 'selected' in option.group(0).lower():
+        print(html.unescape(value_match.group(1)))
         sys.exit(0)
 if options:
-    print(html.unescape(options[0].group(1)))
+    value_match = re.search(r'value="([^"]*)"', options[0].group(1), re.I | re.S)
+    if value_match:
+        print(html.unescape(value_match.group(1)))
 PY
 }
 
@@ -114,6 +120,7 @@ trap 'rm -f "$cookie_file" "$install_page" "$response_page"' EXIT
 curl -fsSL -c "$cookie_file" "$BASE_URL/install" -o "$install_page"
 
 token="$(extract_input_value "$install_page" "__RequestVerificationToken")"
+language="$(extract_selected_or_first_value "$install_page" "language")"
 country_id="$(extract_select_value "$install_page" "Country" "$COUNTRY")"
 if [ -z "$country_id" ]; then
     country_id="$(extract_selected_or_first_value "$install_page" "Country")"
@@ -121,6 +128,7 @@ fi
 postgres_provider="$(extract_select_value "$install_page" "DataProvider" "PostgreSQL")"
 
 [ -n "$token" ] || error "Could not find installer anti-forgery token. Is nopCommerce already installed?"
+[ -n "$language" ] || error "Could not determine installer language value."
 [ -n "$country_id" ] || error "Could not determine installer country value."
 [ -n "$postgres_provider" ] || error "Could not find PostgreSQL in installer database options."
 
