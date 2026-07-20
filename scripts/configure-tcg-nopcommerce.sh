@@ -37,7 +37,7 @@ config = {
 print(json.dumps(config, indent=2))
 PY
 
-install -m 666 "$tmp_file" "$APPSETTINGS_FILE"
+cat "$tmp_file" > "$APPSETTINGS_FILE"
 rm -f "$tmp_file"
 chown -R 108:110 "$APPSETTINGS_FILE" /opt/tcg-store/data-protection-keys /opt/tcg-store/images 2>/dev/null || true
 chmod 666 "$APPSETTINGS_FILE"
