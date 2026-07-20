@@ -28,7 +28,9 @@ source "$SECRETS_FILE"
 : "${TCG_DATABASE_CONNECTION_STRING_POOLED:?Set TCG_DATABASE_CONNECTION_STRING_POOLED in $SECRETS_FILE}"
 
 mkdir -p /opt/tcg-store/data-protection-keys /opt/tcg-store/images /opt/tcg-store/backups/postgres /opt/tcg-store/backups/media
-touch /opt/tcg-store/appsettings.json
+if [ ! -s /opt/tcg-store/appsettings.json ]; then
+    printf '{}\n' > /opt/tcg-store/appsettings.json
+fi
 mkdir -p "$NOMAD_JOBS_DIR"
 
 TEMP_DB="/tmp/tcg-store-db-vars.json"

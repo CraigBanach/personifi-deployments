@@ -155,7 +155,9 @@ if [ "$LOCAL_COMMIT" != "$REMOTE_COMMIT" ]; then
                 : "${TCG_DATABASE_CONNECTION_STRING_POOLED:?Set TCG_DATABASE_CONNECTION_STRING_POOLED in $TCG_SECRETS_FILE}"
 
                 mkdir -p /opt/tcg-store/data-protection-keys /opt/tcg-store/images /opt/tcg-store/backups/postgres /opt/tcg-store/backups/media
-                touch /opt/tcg-store/appsettings.json
+                if [ ! -s /opt/tcg-store/appsettings.json ]; then
+                    printf '{}\n' > /opt/tcg-store/appsettings.json
+                fi
 
                 TEMP_TCG_DB="/tmp/tcg-store-db-vars.json"
                 cat > "$TEMP_TCG_DB" <<EOD
