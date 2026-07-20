@@ -40,7 +40,7 @@ cat > "$TEMP_DB" <<EOD
 }
 EOD
 
-nomad var put tcg-store/database @"$TEMP_DB"
+nomad var put -force tcg-store/database @"$TEMP_DB"
 rm -f "$TEMP_DB"
 
 sed "s|IMAGE_PLACEHOLDER|$TCG_IMAGE|g" \
