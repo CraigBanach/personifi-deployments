@@ -1,0 +1,70 @@
+job "tcg-store" {
+  datacenters = ["dc1"]
+  type        = "service"
+
+  group "tcg-store" {
+    network {
+      port "http" {}
+    }
+
+    service {
+      name = "tcg-store"
+      port = "http"
+
+      check {
+        type     = "http"
+        path     = "/"
+        interval = "30s"
+        timeout  = "5s"
+      }
+    }
+
+    task "nopcommerce" {
+      driver = "docker"
+
+      template {
+        data = <<EOF
+TCG_DATABASE_CONNECTION_STRING_DIRECT="{{ with nomadVar "tcg-store/database" }}{{ .connection_string_direct }}{{ end }}"
+TCG_DATABASE_CONNECTION_STRING_POOLED="{{ with nomadVar "tcg-store/database" }}{{ .connection_string_pooled }}{{ end }}"
+EOF
+        destination = "local/database.env"
+        env         = true
+      }
+
+      config {
+        image = "IMAGE_PLACEHOLDER"
+        ports = ["http"]
+
+        volumes = [
+          "/opt/tcg-store/app-data:/app/App_Data",
+          "/opt/tcg-store/images:/app/wwwroot/images",
+          "/opt/tcg-store/theme:/app/Themes/TcgStore:ro"
+        ]
+
+        labels = {
+          "traefik.enable" = "true"
+
+          "traefik.http.routers.tcg-store.rule" = "Host(`craigscards.co.uk`) || Host(`www.craigscards.co.uk`)"
+          "traefik.http.routers.tcg-store.entrypoints" = "web"
+
+          "traefik.http.routers.tcg-store-secure.rule" = "Host(`craigscards.co.uk`) || Host(`www.craigscards.co.uk`)"
+          "traefik.http.routers.tcg-store-secure.entrypoints" = "websecure"
+          "traefik.http.routers.tcg-store-secure.tls" = "true"
+          "traefik.http.routers.tcg-store-secure.tls.certresolver" = "letsencrypt"
+
+          "traefik.http.services.tcg-store.loadbalancer.server.port" = "80"
+        }
+      }
+
+      env {
+        ASPNETCORE_ENVIRONMENT = "Production"
+        ASPNETCORE_URLS        = "http://0.0.0.0:80"
+      }
+
+      resources {
+        cpu    = 500
+        memory = 1024
+      }
+    }
+  }
+}
