@@ -34,10 +34,31 @@ The quick deploy script creates these directories:
 
 ## Deploy
 
+### Manual Deploy
+
 ```bash
-sudo -u gitops /opt/personifi-deployments/scripts/quick-deploy-tcg-store.sh
+sudo -u gitops bash /opt/personifi-deployments/scripts/quick-deploy-tcg-store.sh
 nomad job status tcg-store
 ```
+
+### GitOps Deploy
+
+TCG is wired into the existing GitOps poller but guarded by `TCG_ENABLED` in `deployment.env`.
+
+Keep it disabled while DNS/cert setup is incomplete:
+
+```bash
+TCG_ENABLED=false
+```
+
+Enable it when the desired hostnames point at the Hetzner box:
+
+```bash
+TCG_ENABLED=true
+TCG_IMAGE=nopcommerceteam/nopcommerce:4.80.7
+```
+
+The existing `gitops-deploy.timer` will pull `origin/main` and deploy TCG when `deployment.env` changes on `main`.
 
 ## Install nopCommerce
 

@@ -5,6 +5,7 @@
 DEPLOY_REPO="/opt/personifi-deployments"
 LOG_FILE="/var/log/gitops-deploy.log"
 NOMAD_JOBS_DIR="/opt/nomad/jobs"
+TCG_SECRETS_FILE="$DEPLOY_REPO/.tcg-store.secrets.env"
 
 # Colors for output
 RED='\033[0;31m'
@@ -74,6 +75,7 @@ if [ "$LOCAL_COMMIT" != "$REMOTE_COMMIT" ]; then
         info "Configuration loaded:"
         info "  Backend: $BACKEND_IMAGE"
         info "  Frontend: $FRONTEND_IMAGE"
+        info "  TCG enabled: ${TCG_ENABLED:-false}"
         info "  Deployed at: $DEPLOYED_AT"
         info "  Source commit: $COMMIT_SHA"
         
@@ -137,6 +139,50 @@ if [ "$LOCAL_COMMIT" != "$REMOTE_COMMIT" ]; then
             fi
         else
             warn "Frontend template not found at /opt/personifi-deployments/infra/jobs/personifi-frontend.nomad.template"
+        fi
+
+        if [ "${TCG_ENABLED:-false}" = "true" ]; then
+            if [ -f "/opt/personifi-deployments/infra/jobs/tcg-store.nomad.template" ]; then
+                info "🃏 Deploying TCG store..."
+
+                if [ ! -f "$TCG_SECRETS_FILE" ]; then
+                    error "TCG is enabled but secrets file is missing: $TCG_SECRETS_FILE"
+                    exit 1
+                fi
+
+                source "$TCG_SECRETS_FILE"
+                : "${TCG_DATABASE_CONNECTION_STRING_DIRECT:?Set TCG_DATABASE_CONNECTION_STRING_DIRECT in $TCG_SECRETS_FILE}"
+                : "${TCG_DATABASE_CONNECTION_STRING_POOLED:?Set TCG_DATABASE_CONNECTION_STRING_POOLED in $TCG_SECRETS_FILE}"
+
+                mkdir -p /opt/tcg-store/app-data /opt/tcg-store/images /opt/tcg-store/backups/postgres /opt/tcg-store/backups/media
+
+                TEMP_TCG_DB="/tmp/tcg-store-db-vars.json"
+                cat > "$TEMP_TCG_DB" <<EOD
+{
+  "Items": {
+    "connection_string_direct": "$TCG_DATABASE_CONNECTION_STRING_DIRECT",
+    "connection_string_pooled": "$TCG_DATABASE_CONNECTION_STRING_POOLED"
+  }
+}
+EOD
+                nomad var put -force tcg-store/database @"$TEMP_TCG_DB"
+                rm -f "$TEMP_TCG_DB"
+
+                sed "s|IMAGE_PLACEHOLDER|${TCG_IMAGE:-nopcommerceteam/nopcommerce:4.80.7}|g" \
+                    "/opt/personifi-deployments/infra/jobs/tcg-store.nomad.template" > \
+                    "$NOMAD_JOBS_DIR/tcg-store.nomad"
+
+                if nomad job run "$NOMAD_JOBS_DIR/tcg-store.nomad"; then
+                    success "TCG store deployed successfully"
+                else
+                    error "TCG store deployment failed"
+                    exit 1
+                fi
+            else
+                warn "TCG template not found at /opt/personifi-deployments/infra/jobs/tcg-store.nomad.template"
+            fi
+        else
+            info "TCG store deployment disabled"
         fi
         
         success "🎉 Deployment complete: $DEPLOYED_AT"
