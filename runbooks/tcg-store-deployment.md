@@ -4,6 +4,8 @@
 
 Deploy Craig's Cards / TCG Store to the existing single-node Nomad and Traefik box.
 
+The first live version intentionally uses the stock nopCommerce image and default theme. Custom theme work can restart later after the store is installed, backed up, and reachable.
+
 ## Server Secrets
 
 Create `/opt/personifi-deployments/.tcg-store.secrets.env` as the `gitops` user.
@@ -26,12 +28,9 @@ The quick deploy script creates these directories:
 ```bash
 /opt/tcg-store/app-data
 /opt/tcg-store/images
-/opt/tcg-store/theme
 /opt/tcg-store/backups/postgres
 /opt/tcg-store/backups/media
 ```
-
-Copy the `TcgStore` theme from the `tcg-store` repository into `/opt/tcg-store/theme` before first deployment.
 
 ## Deploy
 
@@ -49,7 +48,7 @@ The first pass intentionally uses the normal nopCommerce installer rather than a
 3. Use the direct Neon host, database, username, and password.
 4. Complete install.
 5. Restart the Nomad job.
-6. Switch theme to `TcgStore` in admin.
+6. Keep the default nopCommerce theme until the store is stable.
 
 ## Backup
 
