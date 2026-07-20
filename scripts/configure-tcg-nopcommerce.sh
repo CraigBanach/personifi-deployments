@@ -18,7 +18,7 @@ source "$SECRETS_FILE"
 
 : "${TCG_DATABASE_CONNECTION_STRING_DIRECT:?Set TCG_DATABASE_CONNECTION_STRING_DIRECT in $SECRETS_FILE}"
 
-mkdir -p /opt/tcg-store/data-protection-keys /opt/tcg-store/images
+mkdir -p /opt/tcg-store/data-protection-keys /opt/tcg-store/images /opt/tcg-store/files
 
 tmp_file="$(mktemp)"
 python3 - "$TCG_DATABASE_CONNECTION_STRING_DIRECT" > "$tmp_file" <<'PY'
@@ -39,8 +39,8 @@ PY
 
 cat "$tmp_file" > "$APPSETTINGS_FILE"
 rm -f "$tmp_file"
-chown -R 108:110 "$APPSETTINGS_FILE" /opt/tcg-store/data-protection-keys /opt/tcg-store/images 2>/dev/null || true
+chown -R 108:110 "$APPSETTINGS_FILE" /opt/tcg-store/data-protection-keys /opt/tcg-store/images /opt/tcg-store/files 2>/dev/null || true
 chmod 666 "$APPSETTINGS_FILE"
-chmod -R 777 /opt/tcg-store/data-protection-keys /opt/tcg-store/images
+chmod -R 777 /opt/tcg-store/data-protection-keys /opt/tcg-store/images /opt/tcg-store/files
 
 echo "nopCommerce appsettings configured for PostgreSQL."
