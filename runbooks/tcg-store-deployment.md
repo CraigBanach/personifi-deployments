@@ -26,7 +26,7 @@ Do not commit real values.
 The quick deploy script creates these directories:
 
 ```bash
-/opt/tcg-store/app-data
+/opt/tcg-store/data-protection-keys
 /opt/tcg-store/images
 /opt/tcg-store/backups/postgres
 /opt/tcg-store/backups/media
