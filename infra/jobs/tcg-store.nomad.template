@@ -7,18 +7,6 @@ job "tcg-store" {
       port "http" {}
     }
 
-    service {
-      name = "tcg-store"
-      port = "http"
-
-      check {
-        type     = "http"
-        path     = "/"
-        interval = "30s"
-        timeout  = "5s"
-      }
-    }
-
     task "nopcommerce" {
       driver = "docker"
 
