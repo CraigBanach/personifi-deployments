@@ -12,14 +12,14 @@ Create `/opt/personifi-deployments/.tcg-store.secrets.env` as the `gitops` user.
 
 ```bash
 TCG_DATABASE_CONNECTION_STRING_DIRECT="Host=...;Port=5432;Database=...;Username=...;Password=...;SSL Mode=Require;Trust Server Certificate=true;"
-TCG_DATABASE_CONNECTION_STRING_POOLED="Host=...-pooler...;Port=5432;Database=...;Username=...;Password=...;SSL Mode=Require;Trust Server Certificate=true;"
+TCG_DATABASE_CONNECTION_STRING_POOLED="Host=...;Port=5432;Database=...;Username=...;Password=...;SSL Mode=Require;Trust Server Certificate=true;"
 TCG_DATABASE_URL_DIRECT="postgresql://user:password@host/database?sslmode=require"
 TCG_IMAGE="nopcommerceteam/nopcommerce:4.80.7"
 ```
 
 Do not commit real values.
 
-`TCG_DATABASE_CONNECTION_STRING_DIRECT` and `TCG_DATABASE_CONNECTION_STRING_POOLED` are .NET-style connection strings for nopCommerce/admin usage. `TCG_DATABASE_URL_DIRECT` is a libpq-style URL for `pg_dump`.
+`TCG_DATABASE_CONNECTION_STRING_DIRECT` and `TCG_DATABASE_CONNECTION_STRING_POOLED` are .NET-style connection strings for nopCommerce/admin usage. `TCG_DATABASE_URL_DIRECT` is a libpq-style URL for `pg_dump`. If the provider has no connection pooler, set `DIRECT` and `POOLED` to the same value.
 
 ## Persistent Directories
 
@@ -71,19 +71,33 @@ The first pass intentionally uses the normal nopCommerce installer rather than a
 
 1. Visit `https://craigscards.co.uk/install` after DNS and Traefik are ready.
 2. Select PostgreSQL.
-3. Use the direct Neon host, database, username, and password.
-4. Leave `Create database if it doesn't exist` unchecked for Neon.
+3. Use the managed Postgres host, database, username, and password.
+4. Leave `Create database if it doesn't exist` unchecked for managed providers such as Aiven or Neon.
 5. Leave sample data unchecked unless deliberately testing demo catalog content.
 6. Complete install and let nopCommerce restart itself.
 7. Keep the default nopCommerce theme until the store is stable.
 
-Before retrying a failed install against Neon, reset the schema and extension:
+Before retrying a failed install against managed Postgres, reset the schema and extension:
 
 ```sql
 DROP SCHEMA public CASCADE;
 CREATE SCHEMA public;
 CREATE EXTENSION IF NOT EXISTS citext;
 ```
+
+The current staging database was migrated from Neon to Aiven Free PostgreSQL because nopCommerce scheduled tasks kept Neon compute active. Aiven Free has no pooler, so the direct and pooled connection strings are identical.
+
+## Database Migration
+
+Use a custom-format dump and restore when moving providers:
+
+```bash
+pg_dump "$SOURCE_DATABASE_URL" --format=custom --no-owner --no-acl --file=/tmp/tcg-store.dump
+psql "$TARGET_DATABASE_URL" -c 'DROP SCHEMA IF EXISTS public CASCADE;' -c 'CREATE SCHEMA public;' -c 'CREATE EXTENSION IF NOT EXISTS citext;'
+pg_restore "--dbname=$TARGET_DATABASE_URL" --no-owner --no-acl --clean --if-exists /tmp/tcg-store.dump
+```
+
+After updating `/opt/personifi-deployments/.tcg-store.secrets.env`, run `scripts/configure-tcg-nopcommerce.sh` to update `/opt/tcg-store/appsettings.json`, then restart the Nomad job.
 
 ## Backup
 
