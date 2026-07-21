@@ -18,7 +18,7 @@ source "$SECRETS_FILE"
 
 : "${TCG_DATABASE_CONNECTION_STRING_DIRECT:?Set TCG_DATABASE_CONNECTION_STRING_DIRECT in $SECRETS_FILE}"
 
-mkdir -p /opt/tcg-store/data-protection-keys /opt/tcg-store/images/uploaded /opt/tcg-store/files /opt/tcg-store/icons
+mkdir -p /opt/tcg-store/data-protection-keys /opt/tcg-store/images/uploaded /opt/tcg-store/images/thumbs /opt/tcg-store/files /opt/tcg-store/icons
 
 tmp_file="$(mktemp)"
 python3 - "$TCG_DATABASE_CONNECTION_STRING_DIRECT" > "$tmp_file" <<'PY'

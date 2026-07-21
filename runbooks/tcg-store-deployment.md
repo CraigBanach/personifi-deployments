@@ -29,6 +29,7 @@ The quick deploy script creates these directories:
 /opt/tcg-store/data-protection-keys
 /opt/tcg-store/images
 /opt/tcg-store/images/uploaded
+/opt/tcg-store/images/thumbs
 /opt/tcg-store/files
 /opt/tcg-store/icons
 /opt/tcg-store/backups/postgres
@@ -37,6 +38,8 @@ The quick deploy script creates these directories:
 ```
 
 `/opt/tcg-store/images/uploaded` is required by nopCommerce Roxy Fileman (`FILES_ROOT=/images/uploaded`). If it is missing under the persisted images mount, installation can fail while activating `RoxyFilemanFileProvider`.
+
+`/opt/tcg-store/images/thumbs` is required by nopCommerce picture upload/thumbnail generation. If it is missing under the persisted images mount, admin image uploads can fail in `Admin/Picture/AsyncUpload`.
 
 `/opt/tcg-store/icons` persists generated favicons and store icons from `/app/wwwroot/icons`.
 
