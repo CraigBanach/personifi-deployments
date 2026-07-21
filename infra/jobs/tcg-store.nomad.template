@@ -27,7 +27,8 @@ EOF
           "/opt/tcg-store/appsettings.json:/app/App_Data/appsettings.json",
           "/opt/tcg-store/data-protection-keys:/app/App_Data/DataProtectionKeys",
           "/opt/tcg-store/images:/app/wwwroot/images",
-          "/opt/tcg-store/files:/app/wwwroot/files"
+          "/opt/tcg-store/files:/app/wwwroot/files",
+          "/opt/tcg-store/icons:/app/wwwroot/icons"
         ]
 
         labels = {

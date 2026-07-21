@@ -19,7 +19,7 @@ source "$SECRETS_FILE"
 mkdir -p "$POSTGRES_DIR" "$MEDIA_DIR"
 
 pg_dump "$TCG_DATABASE_URL_DIRECT" --format=custom --no-owner --no-acl --file "$POSTGRES_DIR/tcg-store-$TIMESTAMP.dump"
-tar -czf "$MEDIA_DIR/tcg-store-media-$TIMESTAMP.tar.gz" -C /opt/tcg-store appsettings.json data-protection-keys images files
+tar -czf "$MEDIA_DIR/tcg-store-media-$TIMESTAMP.tar.gz" -C /opt/tcg-store appsettings.json data-protection-keys images files icons
 
 find "$POSTGRES_DIR" -name 'tcg-store-*.dump' -mtime +7 -delete
 find "$MEDIA_DIR" -name 'tcg-store-media-*.tar.gz' -mtime +7 -delete
