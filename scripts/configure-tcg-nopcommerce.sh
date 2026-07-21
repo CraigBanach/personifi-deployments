@@ -40,7 +40,7 @@ PY
 cat "$tmp_file" > "$APPSETTINGS_FILE"
 rm -f "$tmp_file"
 chown -R 108:110 "$APPSETTINGS_FILE" /opt/tcg-store/data-protection-keys /opt/tcg-store/images /opt/tcg-store/files /opt/tcg-store/icons 2>/dev/null || true
-chmod 666 "$APPSETTINGS_FILE"
-chmod -R 777 /opt/tcg-store/data-protection-keys /opt/tcg-store/images /opt/tcg-store/files /opt/tcg-store/icons
+chmod 666 "$APPSETTINGS_FILE" 2>/dev/null || true
+chmod -R 777 /opt/tcg-store/data-protection-keys /opt/tcg-store/images /opt/tcg-store/files /opt/tcg-store/icons 2>/dev/null || true
 
 echo "nopCommerce appsettings configured for PostgreSQL."
