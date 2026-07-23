@@ -154,7 +154,7 @@ if [ "$LOCAL_COMMIT" != "$REMOTE_COMMIT" ]; then
                 : "${TCG_DATABASE_CONNECTION_STRING_DIRECT:?Set TCG_DATABASE_CONNECTION_STRING_DIRECT in $TCG_SECRETS_FILE}"
                 : "${TCG_DATABASE_CONNECTION_STRING_POOLED:?Set TCG_DATABASE_CONNECTION_STRING_POOLED in $TCG_SECRETS_FILE}"
 
-                mkdir -p /opt/tcg-store/data-protection-keys /opt/tcg-store/images/uploaded /opt/tcg-store/images/thumbs /opt/tcg-store/files /opt/tcg-store/icons /opt/tcg-store/backups/postgres /opt/tcg-store/backups/media
+                mkdir -p /opt/tcg-store/data-protection-keys /opt/tcg-store/plugins/NopStation.Core /opt/tcg-store/plugins/NopStation.Plugin.Payments.Stripe /opt/tcg-store/images/uploaded /opt/tcg-store/images/thumbs /opt/tcg-store/files /opt/tcg-store/icons /opt/tcg-store/backups/postgres /opt/tcg-store/backups/media
                 if [ ! -s /opt/tcg-store/appsettings.json ]; then
                     printf '{}\n' > /opt/tcg-store/appsettings.json
                 fi
@@ -164,10 +164,10 @@ if [ "$LOCAL_COMMIT" != "$REMOTE_COMMIT" ]; then
                 if [ ! -s /opt/tcg-store/plugins.json ]; then
                     printf '{"InstalledPluginNames":[],"PluginNamesToDelete":[],"PluginNamesToInstall":[],"PluginNamesToUninstall":[]}\n' > /opt/tcg-store/plugins.json
                 fi
-                chown -R 108:110 /opt/tcg-store/appsettings.json /opt/tcg-store/plugins.json /opt/tcg-store/data-protection-keys /opt/tcg-store/images /opt/tcg-store/files /opt/tcg-store/icons 2>/dev/null || true
+                chown -R 108:110 /opt/tcg-store/appsettings.json /opt/tcg-store/plugins.json /opt/tcg-store/data-protection-keys /opt/tcg-store/plugins /opt/tcg-store/images /opt/tcg-store/files /opt/tcg-store/icons 2>/dev/null || true
                 chmod 666 /opt/tcg-store/appsettings.json 2>/dev/null || true
                 chmod 666 /opt/tcg-store/plugins.json 2>/dev/null || true
-                chmod -R 777 /opt/tcg-store/data-protection-keys /opt/tcg-store/images /opt/tcg-store/files /opt/tcg-store/icons 2>/dev/null || true
+                chmod -R 777 /opt/tcg-store/data-protection-keys /opt/tcg-store/plugins /opt/tcg-store/images /opt/tcg-store/files /opt/tcg-store/icons 2>/dev/null || true
 
                 TEMP_TCG_DB="/tmp/tcg-store-db-vars.json"
                 cat > "$TEMP_TCG_DB" <<EOD

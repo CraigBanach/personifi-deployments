@@ -32,9 +32,11 @@ The quick deploy script creates these directories:
 /opt/tcg-store/images/thumbs
 /opt/tcg-store/files
 /opt/tcg-store/icons
+/opt/tcg-store/plugins
 /opt/tcg-store/backups/postgres
 /opt/tcg-store/backups/media
 /opt/tcg-store/appsettings.json
+/opt/tcg-store/plugins.json
 ```
 
 `/opt/tcg-store/images/uploaded` is required by nopCommerce Roxy Fileman (`FILES_ROOT=/images/uploaded`). If it is missing under the persisted images mount, installation can fail while activating `RoxyFilemanFileProvider`.
@@ -42,6 +44,23 @@ The quick deploy script creates these directories:
 `/opt/tcg-store/images/thumbs` is required by nopCommerce picture upload/thumbnail generation. If it is missing under the persisted images mount, admin image uploads can fail in `Admin/Picture/AsyncUpload`.
 
 `/opt/tcg-store/icons` persists generated favicons and store icons from `/app/wwwroot/icons`.
+
+`/opt/tcg-store/plugins.json` persists nopCommerce plugin install state. If it is not persisted, clicking Install on a plugin appears to work, but the install is lost after the nopCommerce restart.
+
+`/opt/tcg-store/plugins` stores third-party plugin files that are not bundled in the stock nopCommerce image. The Nomad job currently mounts the NopStation Stripe plugin folders into `/app/Plugins`:
+
+```bash
+/opt/tcg-store/plugins/NopStation.Core
+/opt/tcg-store/plugins/NopStation.Plugin.Payments.Stripe
+```
+
+Install a plugin ZIP on the server with:
+
+```bash
+sudo -u gitops bash /opt/personifi-deployments/scripts/install-tcg-plugin-zip.sh /tmp/NopStation.Plugin.Payments.Stripe-4.80.zip
+```
+
+Use a plugin package that matches the nopCommerce major/minor version. The current image is `nopcommerceteam/nopcommerce:4.80.7`, so use a 4.80 plugin build.
 
 ## Deploy
 

@@ -27,6 +27,8 @@ EOF
           "/opt/tcg-store/appsettings.json:/app/App_Data/appsettings.json",
           "/opt/tcg-store/plugins.json:/app/App_Data/plugins.json",
           "/opt/tcg-store/data-protection-keys:/app/App_Data/DataProtectionKeys",
+          "/opt/tcg-store/plugins/NopStation.Core:/app/Plugins/NopStation.Core",
+          "/opt/tcg-store/plugins/NopStation.Plugin.Payments.Stripe:/app/Plugins/NopStation.Plugin.Payments.Stripe",
           "/opt/tcg-store/images:/app/wwwroot/images",
           "/opt/tcg-store/files:/app/wwwroot/files",
           "/opt/tcg-store/icons:/app/wwwroot/icons"
