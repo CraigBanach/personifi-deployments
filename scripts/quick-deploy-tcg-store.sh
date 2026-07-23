@@ -31,6 +31,9 @@ mkdir -p /opt/tcg-store/data-protection-keys /opt/tcg-store/images/uploaded /opt
 if [ ! -s /opt/tcg-store/appsettings.json ]; then
     printf '{}\n' > /opt/tcg-store/appsettings.json
 fi
+if [ -d /opt/tcg-store/plugins.json ]; then
+    rm -rf /opt/tcg-store/plugins.json
+fi
 if [ ! -s /opt/tcg-store/plugins.json ]; then
     printf '{"InstalledPluginNames":[],"PluginNamesToDelete":[],"PluginNamesToInstall":[],"PluginNamesToUninstall":[]}\n' > /opt/tcg-store/plugins.json
 fi
