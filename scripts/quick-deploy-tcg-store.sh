@@ -31,8 +31,12 @@ mkdir -p /opt/tcg-store/data-protection-keys /opt/tcg-store/images/uploaded /opt
 if [ ! -s /opt/tcg-store/appsettings.json ]; then
     printf '{}\n' > /opt/tcg-store/appsettings.json
 fi
-chown -R 108:110 /opt/tcg-store/appsettings.json /opt/tcg-store/data-protection-keys /opt/tcg-store/images /opt/tcg-store/files /opt/tcg-store/icons 2>/dev/null || true
+if [ ! -s /opt/tcg-store/plugins.json ]; then
+    printf '{"InstalledPluginNames":[],"PluginNamesToDelete":[],"PluginNamesToInstall":[],"PluginNamesToUninstall":[]}\n' > /opt/tcg-store/plugins.json
+fi
+chown -R 108:110 /opt/tcg-store/appsettings.json /opt/tcg-store/plugins.json /opt/tcg-store/data-protection-keys /opt/tcg-store/images /opt/tcg-store/files /opt/tcg-store/icons 2>/dev/null || true
 chmod 666 /opt/tcg-store/appsettings.json 2>/dev/null || true
+chmod 666 /opt/tcg-store/plugins.json 2>/dev/null || true
 chmod -R 777 /opt/tcg-store/data-protection-keys /opt/tcg-store/images /opt/tcg-store/files /opt/tcg-store/icons 2>/dev/null || true
 mkdir -p "$NOMAD_JOBS_DIR"
 
