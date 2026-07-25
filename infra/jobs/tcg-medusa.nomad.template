@@ -1,0 +1,186 @@
+job "tcg-medusa" {
+  datacenters = ["dc1"]
+  type        = "service"
+
+  group "tcg-medusa" {
+    network {
+      port "backend" {
+        to = 9000
+      }
+      port "storefront" {
+        to = 8000
+      }
+      port "redis" {
+        to = 6379
+      }
+    }
+
+    service {
+      name = "tcg-medusa-backend"
+      port = "backend"
+
+      check {
+        type     = "http"
+        path     = "/health"
+        interval = "15s"
+        timeout  = "3s"
+      }
+    }
+
+    service {
+      name = "tcg-medusa-storefront"
+      port = "storefront"
+
+      check {
+        type     = "http"
+        path     = "/gb"
+        interval = "15s"
+        timeout  = "3s"
+      }
+    }
+
+    service {
+      name = "tcg-medusa-redis"
+      port = "redis"
+
+      check {
+        type     = "tcp"
+        interval = "15s"
+        timeout  = "3s"
+      }
+    }
+
+    task "redis" {
+      driver = "docker"
+
+      config {
+        image = "redis:7-alpine"
+        ports = ["redis"]
+        args  = ["redis-server", "--appendonly", "yes"]
+        volumes = [
+          "/opt/tcg-medusa/redis:/data"
+        ]
+      }
+
+      resources {
+        cpu    = 100
+        memory = 128
+      }
+    }
+
+    task "backend" {
+      driver = "docker"
+
+      template {
+        data = <<EOF
+DATABASE_URL="{{ with nomadVar "tcg-store/medusa-database" }}{{ .database_url }}{{ end }}"
+REDIS_URL="redis://{{ env "NOMAD_ADDR_redis" }}"
+JWT_SECRET="{{ with nomadVar "tcg-store/medusa-secrets" }}{{ .jwt_secret }}{{ end }}"
+COOKIE_SECRET="{{ with nomadVar "tcg-store/medusa-secrets" }}{{ .cookie_secret }}{{ end }}"
+EOF
+        destination = "local/backend-secrets.env"
+        env         = true
+      }
+
+      template {
+        data = <<EOF
+DOCKER_USERNAME="{{ with nomadVar "personifi/ghcr" }}{{ .username }}{{ end }}"
+DOCKER_PASSWORD="{{ with nomadVar "personifi/ghcr" }}{{ .password }}{{ end }}"
+EOF
+        destination = "local/backend-docker-auth.env"
+        env         = true
+      }
+
+      config {
+        image = "BACKEND_IMAGE_PLACEHOLDER"
+        ports = ["backend"]
+
+        labels = {
+          "traefik.enable" = "true"
+
+          "traefik.http.routers.tcg-medusa-api.rule" = "Host(`api.staging.craigscards.co.uk`)"
+          "traefik.http.routers.tcg-medusa-api.entrypoints" = "web"
+
+          "traefik.http.routers.tcg-medusa-api-secure.rule" = "Host(`api.staging.craigscards.co.uk`)"
+          "traefik.http.routers.tcg-medusa-api-secure.entrypoints" = "websecure"
+          "traefik.http.routers.tcg-medusa-api-secure.tls" = "true"
+          "traefik.http.routers.tcg-medusa-api-secure.tls.certresolver" = "letsencrypt"
+
+          "traefik.http.services.tcg-medusa-api.loadbalancer.server.port" = "9000"
+        }
+
+        auth {
+          username = "${DOCKER_USERNAME}"
+          password = "${DOCKER_PASSWORD}"
+        }
+      }
+
+      env {
+        NODE_ENV = "production"
+        PORT     = "9000"
+
+        STORE_CORS = "https://staging.craigscards.co.uk"
+        ADMIN_CORS = "https://api.staging.craigscards.co.uk"
+        AUTH_CORS  = "https://api.staging.craigscards.co.uk,https://staging.craigscards.co.uk"
+      }
+
+      resources {
+        cpu    = 500
+        memory = 768
+      }
+    }
+
+    task "storefront" {
+      driver = "docker"
+
+      template {
+        data = <<EOF
+DOCKER_USERNAME="{{ with nomadVar "personifi/ghcr" }}{{ .username }}{{ end }}"
+DOCKER_PASSWORD="{{ with nomadVar "personifi/ghcr" }}{{ .password }}{{ end }}"
+NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY="{{ with nomadVar "tcg-store/medusa-secrets" }}{{ .publishable_key }}{{ end }}"
+NEXT_PUBLIC_STRIPE_KEY="{{ with nomadVar "tcg-store/medusa-secrets" }}{{ .stripe_publishable_key }}{{ end }}"
+EOF
+        destination = "local/storefront-secrets.env"
+        env         = true
+      }
+
+      config {
+        image = "STOREFRONT_IMAGE_PLACEHOLDER"
+        ports = ["storefront"]
+
+        labels = {
+          "traefik.enable" = "true"
+
+          "traefik.http.routers.tcg-medusa-storefront.rule" = "Host(`staging.craigscards.co.uk`)"
+          "traefik.http.routers.tcg-medusa-storefront.entrypoints" = "web"
+
+          "traefik.http.routers.tcg-medusa-storefront-secure.rule" = "Host(`staging.craigscards.co.uk`)"
+          "traefik.http.routers.tcg-medusa-storefront-secure.entrypoints" = "websecure"
+          "traefik.http.routers.tcg-medusa-storefront-secure.tls" = "true"
+          "traefik.http.routers.tcg-medusa-storefront-secure.tls.certresolver" = "letsencrypt"
+
+          "traefik.http.services.tcg-medusa-storefront.loadbalancer.server.port" = "8000"
+        }
+
+        auth {
+          username = "${DOCKER_USERNAME}"
+          password = "${DOCKER_PASSWORD}"
+        }
+      }
+
+      env {
+        NODE_ENV = "production"
+        PORT     = "8000"
+
+        NEXT_PUBLIC_MEDUSA_BACKEND_URL = "https://api.staging.craigscards.co.uk"
+        NEXT_PUBLIC_DEFAULT_REGION     = "gb"
+        NEXT_PUBLIC_BASE_URL           = "https://staging.craigscards.co.uk"
+      }
+
+      resources {
+        cpu    = 500
+        memory = 512
+      }
+    }
+  }
+}
