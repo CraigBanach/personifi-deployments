@@ -15,41 +15,6 @@ job "tcg-medusa" {
       }
     }
 
-    service {
-      name = "tcg-medusa-backend"
-      port = "backend"
-
-      check {
-        type     = "http"
-        path     = "/health"
-        interval = "15s"
-        timeout  = "3s"
-      }
-    }
-
-    service {
-      name = "tcg-medusa-storefront"
-      port = "storefront"
-
-      check {
-        type     = "http"
-        path     = "/gb"
-        interval = "15s"
-        timeout  = "3s"
-      }
-    }
-
-    service {
-      name = "tcg-medusa-redis"
-      port = "redis"
-
-      check {
-        type     = "tcp"
-        interval = "15s"
-        timeout  = "3s"
-      }
-    }
-
     task "redis" {
       driver = "docker"
 
