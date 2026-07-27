@@ -29,20 +29,15 @@ fi
 
 cd "$DEPLOY_DIR" || error "Deployment directory not found: $DEPLOY_DIR"
 
-if [ ! -f "$SECRETS_FILE" ]; then
-    error "Missing secrets file: $SECRETS_FILE"
-fi
+if [ -f "$SECRETS_FILE" ]; then
+    source "$SECRETS_FILE"
 
-source "$SECRETS_FILE"
+    : "${DATABASE_URL:?Set DATABASE_URL in $SECRETS_FILE}"
+    : "${JWT_SECRET:?Set JWT_SECRET in $SECRETS_FILE}"
+    : "${COOKIE_SECRET:?Set COOKIE_SECRET in $SECRETS_FILE}"
+    : "${NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY:?Set NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY in $SECRETS_FILE}"
 
-: "${DATABASE_URL:?Set DATABASE_URL in $SECRETS_FILE}"
-: "${JWT_SECRET:?Set JWT_SECRET in $SECRETS_FILE}"
-: "${COOKIE_SECRET:?Set COOKIE_SECRET in $SECRETS_FILE}"
-: "${NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY:?Set NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY in $SECRETS_FILE}"
-
-mkdir -p "$NOMAD_JOBS_DIR" /opt/tcg-medusa/redis
-
-cat > "$TEMP_DB" <<EOD
+    cat > "$TEMP_DB" <<EOD
 {
   "Items": {
     "database_url": "$DATABASE_URL"
@@ -50,7 +45,7 @@ cat > "$TEMP_DB" <<EOD
 }
 EOD
 
-cat > "$TEMP_SECRETS" <<EOD
+    cat > "$TEMP_SECRETS" <<EOD
 {
   "Items": {
     "jwt_secret": "$JWT_SECRET",
@@ -61,8 +56,16 @@ cat > "$TEMP_SECRETS" <<EOD
 }
 EOD
 
-nomad var put -force tcg-store/medusa-database @"$TEMP_DB"
-nomad var put -force tcg-store/medusa-secrets @"$TEMP_SECRETS"
+    nomad var put -force tcg-store/medusa-database @"$TEMP_DB"
+    nomad var put -force tcg-store/medusa-secrets @"$TEMP_SECRETS"
+else
+    nomad var get tcg-store/medusa-database >/dev/null || \
+        error "Missing $SECRETS_FILE and Nomad variable tcg-store/medusa-database"
+    nomad var get tcg-store/medusa-secrets >/dev/null || \
+        error "Missing $SECRETS_FILE and Nomad variable tcg-store/medusa-secrets"
+fi
+
+mkdir -p "$NOMAD_JOBS_DIR" /opt/tcg-medusa/redis
 
 sed \
     -e "s|BACKEND_IMAGE_PLACEHOLDER|$BACKEND_IMAGE|g" \

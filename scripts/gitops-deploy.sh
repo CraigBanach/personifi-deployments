@@ -210,11 +210,6 @@ EOD
                 exit 1
             fi
 
-            if [ ! -f "$TCG_MEDUSA_SECRETS_FILE" ]; then
-                error "TCG Medusa is enabled but secrets file is missing: $TCG_MEDUSA_SECRETS_FILE"
-                exit 1
-            fi
-
             BACKEND_IMAGE="${TCG_MEDUSA_BACKEND_IMAGE:-ghcr.io/craigbanach/tcg-store-backend:latest}" \
             STOREFRONT_IMAGE="${TCG_MEDUSA_STOREFRONT_IMAGE:-ghcr.io/craigbanach/tcg-store-storefront:latest}" \
                 /opt/personifi-deployments/scripts/quick-deploy-tcg-medusa.sh
