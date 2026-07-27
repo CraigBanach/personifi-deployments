@@ -205,14 +205,14 @@ EOD
         if [ "${TCG_MEDUSA_ENABLED:-false}" = "true" ]; then
             info "🃏 Deploying TCG Medusa..."
 
-            if [ ! -x "/opt/personifi-deployments/scripts/quick-deploy-tcg-medusa.sh" ]; then
-                error "TCG Medusa deploy script not found or not executable"
+            if [ ! -f "/opt/personifi-deployments/scripts/quick-deploy-tcg-medusa.sh" ]; then
+                error "TCG Medusa deploy script not found"
                 exit 1
             fi
 
             BACKEND_IMAGE="${TCG_MEDUSA_BACKEND_IMAGE:-ghcr.io/craigbanach/tcg-store-backend:latest}" \
             STOREFRONT_IMAGE="${TCG_MEDUSA_STOREFRONT_IMAGE:-ghcr.io/craigbanach/tcg-store-storefront:latest}" \
-                /opt/personifi-deployments/scripts/quick-deploy-tcg-medusa.sh
+                bash /opt/personifi-deployments/scripts/quick-deploy-tcg-medusa.sh
 
             success "TCG Medusa deployment submitted"
         else
