@@ -1,0 +1,29 @@
+name: Deploy TCG Medusa
+
+on:
+  workflow_dispatch:
+    inputs:
+      backend_image:
+        description: Backend image to deploy
+        required: false
+        default: ghcr.io/craigbanach/tcg-store-backend:latest
+      storefront_image:
+        description: Storefront image to deploy
+        required: false
+        default: ghcr.io/craigbanach/tcg-store-storefront:latest
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy to Nomad
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.NOMAD_HOST }}
+          username: ${{ secrets.NOMAD_SSH_USER || 'craig' }}
+          key: ${{ secrets.NOMAD_SSH_KEY }}
+          script: |
+            set -euo pipefail
+            sudo -u gitops git -C /opt/personifi-deployments pull --ff-only
+            sudo -u gitops BACKEND_IMAGE="${{ inputs.backend_image }}" STOREFRONT_IMAGE="${{ inputs.storefront_image }}" /opt/personifi-deployments/scripts/quick-deploy-tcg-medusa.sh
+            nomad job status tcg-medusa
