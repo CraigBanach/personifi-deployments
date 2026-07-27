@@ -83,6 +83,7 @@ EOF
       env {
         NODE_ENV = "production"
         PORT     = "9000"
+        DEPLOY_VERSION = "DEPLOY_VERSION_PLACEHOLDER"
 
         STORE_CORS = "https://staging.craigscards.co.uk"
         ADMIN_CORS = "https://api.staging.craigscards.co.uk"
@@ -136,6 +137,7 @@ EOF
       env {
         NODE_ENV = "production"
         PORT     = "8000"
+        DEPLOY_VERSION = "DEPLOY_VERSION_PLACEHOLDER"
 
         NEXT_PUBLIC_MEDUSA_BACKEND_URL = "https://api.staging.craigscards.co.uk"
         NEXT_PUBLIC_DEFAULT_REGION     = "gb"

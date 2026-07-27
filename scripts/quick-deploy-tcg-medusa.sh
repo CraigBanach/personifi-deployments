@@ -8,6 +8,7 @@ GITOPS_USER="gitops"
 
 BACKEND_IMAGE="${BACKEND_IMAGE:-ghcr.io/craigbanach/tcg-store-backend:latest}"
 STOREFRONT_IMAGE="${STOREFRONT_IMAGE:-ghcr.io/craigbanach/tcg-store-storefront:latest}"
+DEPLOY_VERSION="$(date -u +%Y%m%d%H%M%S)"
 TEMP_DB="/tmp/tcg-medusa-database-vars.json"
 TEMP_SECRETS="/tmp/tcg-medusa-secret-vars.json"
 
@@ -66,6 +67,7 @@ nomad var put -force tcg-store/medusa-secrets @"$TEMP_SECRETS"
 sed \
     -e "s|BACKEND_IMAGE_PLACEHOLDER|$BACKEND_IMAGE|g" \
     -e "s|STOREFRONT_IMAGE_PLACEHOLDER|$STOREFRONT_IMAGE|g" \
+    -e "s|DEPLOY_VERSION_PLACEHOLDER|$DEPLOY_VERSION|g" \
     "infra/jobs/tcg-medusa.nomad.template" > \
     "$NOMAD_JOBS_DIR/tcg-medusa.nomad"
 
