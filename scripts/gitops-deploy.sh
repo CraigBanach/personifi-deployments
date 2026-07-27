@@ -67,7 +67,7 @@ if [ "$LOCAL_COMMIT" != "$REMOTE_COMMIT" ]; then
     # exactly matches origin/main even when local generated files changed.
     OLD_COMMIT=$(git rev-parse --short HEAD)
     git reset --hard origin/main
-    git clean -fd
+    git clean -fd -e .secrets.env -e .tcg-store.secrets.env -e .tcg-medusa.secrets.env
     NEW_COMMIT=$(git rev-parse --short HEAD)
     
     info "Updating from $OLD_COMMIT to $NEW_COMMIT"
