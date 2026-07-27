@@ -63,9 +63,11 @@ REMOTE_COMMIT=$(git rev-parse origin/main 2>/dev/null || echo $LOCAL_COMMIT)
 if [ "$LOCAL_COMMIT" != "$REMOTE_COMMIT" ]; then
     info "🔄 New deployment detected"
     
-    # Get the commit details
+    # Get the commit details. Use reset so the deployment checkout always
+    # exactly matches origin/main even when local generated files changed.
     OLD_COMMIT=$(git rev-parse --short HEAD)
-    git pull origin main
+    git reset --hard origin/main
+    git clean -fd
     NEW_COMMIT=$(git rev-parse --short HEAD)
     
     info "Updating from $OLD_COMMIT to $NEW_COMMIT"
