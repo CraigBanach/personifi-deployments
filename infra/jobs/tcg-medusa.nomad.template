@@ -84,6 +84,8 @@ EOF
         NODE_ENV = "production"
         PORT     = "9000"
         DEPLOY_VERSION = "DEPLOY_VERSION_PLACEHOLDER"
+        CI = "true"
+        PNPM_CONFIG_CONFIRM_MODULES_PURGE = "false"
 
         STORE_CORS = "https://staging.craigscards.co.uk"
         ADMIN_CORS = "https://api.staging.craigscards.co.uk"
@@ -92,7 +94,7 @@ EOF
 
       resources {
         cpu    = 500
-        memory = 768
+        memory = 1536
       }
     }
 
