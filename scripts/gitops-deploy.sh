@@ -6,6 +6,7 @@ DEPLOY_REPO="/opt/personifi-deployments"
 LOG_FILE="/var/log/gitops-deploy.log"
 NOMAD_JOBS_DIR="/opt/nomad/jobs"
 TCG_SECRETS_FILE="$DEPLOY_REPO/.tcg-store.secrets.env"
+TCG_MEDUSA_SECRETS_FILE="$DEPLOY_REPO/.tcg-medusa.secrets.env"
 
 # Colors for output
 RED='\033[0;31m'
@@ -76,6 +77,7 @@ if [ "$LOCAL_COMMIT" != "$REMOTE_COMMIT" ]; then
         info "  Backend: $BACKEND_IMAGE"
         info "  Frontend: $FRONTEND_IMAGE"
         info "  TCG enabled: ${TCG_ENABLED:-false}"
+        info "  TCG Medusa enabled: ${TCG_MEDUSA_ENABLED:-false}"
         info "  Deployed at: $DEPLOYED_AT"
         info "  Source commit: $COMMIT_SHA"
         
@@ -196,6 +198,28 @@ EOD
             fi
         else
             info "TCG store deployment disabled"
+        fi
+
+        if [ "${TCG_MEDUSA_ENABLED:-false}" = "true" ]; then
+            info "🃏 Deploying TCG Medusa..."
+
+            if [ ! -x "/opt/personifi-deployments/scripts/quick-deploy-tcg-medusa.sh" ]; then
+                error "TCG Medusa deploy script not found or not executable"
+                exit 1
+            fi
+
+            if [ ! -f "$TCG_MEDUSA_SECRETS_FILE" ]; then
+                error "TCG Medusa is enabled but secrets file is missing: $TCG_MEDUSA_SECRETS_FILE"
+                exit 1
+            fi
+
+            BACKEND_IMAGE="${TCG_MEDUSA_BACKEND_IMAGE:-ghcr.io/craigbanach/tcg-store-backend:latest}" \
+            STOREFRONT_IMAGE="${TCG_MEDUSA_STOREFRONT_IMAGE:-ghcr.io/craigbanach/tcg-store-storefront:latest}" \
+                /opt/personifi-deployments/scripts/quick-deploy-tcg-medusa.sh
+
+            success "TCG Medusa deployment submitted"
+        else
+            info "TCG Medusa deployment disabled"
         fi
         
         success "🎉 Deployment complete: $DEPLOYED_AT"
