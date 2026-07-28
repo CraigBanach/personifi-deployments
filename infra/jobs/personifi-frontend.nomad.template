@@ -8,18 +8,6 @@ job "personifi-frontend" {
       port "app" {}
     }
 
-    service {
-      name = "personifi-frontend"
-      port = "app"
-
-      check {
-        type     = "http"
-        path     = "/api/health/config"
-        interval = "15s"
-        timeout  = "3s"
-      }
-    }
-
     task "personifi-frontend" {
       driver = "docker"
       
