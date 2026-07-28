@@ -67,8 +67,7 @@ fi
 
 mkdir -p "$NOMAD_JOBS_DIR" /opt/tcg-medusa/redis
 
-cp "infra/jobs/tcg-medusa-redis.nomad.hcl" "$NOMAD_JOBS_DIR/tcg-medusa-redis.nomad"
-nomad job run "$NOMAD_JOBS_DIR/tcg-medusa-redis.nomad"
+nomad job stop -purge tcg-medusa-redis >/dev/null 2>&1 || true
 
 sed \
     -e "s|BACKEND_IMAGE_PLACEHOLDER|$BACKEND_IMAGE|g" \
