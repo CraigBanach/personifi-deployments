@@ -10,28 +10,6 @@ job "tcg-medusa" {
       port "storefront" {
         to = 8000
       }
-      port "redis" {
-        to = 6379
-      }
-    }
-
-    task "redis" {
-      driver = "docker"
-
-      config {
-        image = "redis:7-alpine"
-        name  = "tcg-medusa-redis"
-        ports = ["redis"]
-        args  = ["redis-server", "--appendonly", "yes"]
-        volumes = [
-          "/opt/tcg-medusa/redis:/data"
-        ]
-      }
-
-      resources {
-        cpu    = 100
-        memory = 128
-      }
     }
 
     task "backend" {
@@ -40,7 +18,7 @@ job "tcg-medusa" {
       template {
         data = <<EOF
 DATABASE_URL="{{ with nomadVar "tcg-store/medusa-database" }}{{ .database_url }}{{ end }}"
-REDIS_URL="redis://tcg-medusa-redis:6379"
+REDIS_URL="redis://172.17.0.1:26379"
 JWT_SECRET="{{ with nomadVar "tcg-store/medusa-secrets" }}{{ .jwt_secret }}{{ end }}"
 COOKIE_SECRET="{{ with nomadVar "tcg-store/medusa-secrets" }}{{ .cookie_secret }}{{ end }}"
 EOF
