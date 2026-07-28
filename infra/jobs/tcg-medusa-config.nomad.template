@@ -1,0 +1,59 @@
+job "tcg-medusa-config" {
+  datacenters = ["dc1"]
+  type        = "batch"
+
+  group "config" {
+    restart {
+      attempts = 0
+      mode     = "fail"
+    }
+
+    task "apply-store-config" {
+      driver = "docker"
+
+      template {
+        data = <<EOF
+DATABASE_URL="{{ with nomadVar "tcg-store/medusa-database" }}{{ .database_url }}{{ end }}"
+JWT_SECRET="{{ with nomadVar "tcg-store/medusa-secrets" }}{{ .jwt_secret }}{{ end }}"
+COOKIE_SECRET="{{ with nomadVar "tcg-store/medusa-secrets" }}{{ .cookie_secret }}{{ end }}"
+EOF
+        destination = "local/backend-secrets.env"
+        env         = true
+      }
+
+      template {
+        data = <<EOF
+DOCKER_USERNAME="{{ with nomadVar "personifi/ghcr" }}{{ .username }}{{ end }}"
+DOCKER_PASSWORD="{{ with nomadVar "personifi/ghcr" }}{{ .password }}{{ end }}"
+EOF
+        destination = "local/docker-auth.env"
+        env         = true
+      }
+
+      config {
+        image   = "BACKEND_IMAGE_PLACEHOLDER"
+        command = "sh"
+        args    = ["-c", "pnpm medusa exec ./src/scripts/apply-store-config.ts"]
+
+        auth {
+          username = "${DOCKER_USERNAME}"
+          password = "${DOCKER_PASSWORD}"
+        }
+      }
+
+      env {
+        NODE_ENV = "production"
+        CI       = "true"
+
+        STORE_CORS = "https://staging.craigscards.co.uk"
+        ADMIN_CORS = "https://api.staging.craigscards.co.uk"
+        AUTH_CORS  = "https://api.staging.craigscards.co.uk,https://staging.craigscards.co.uk"
+      }
+
+      resources {
+        cpu    = 500
+        memory = 1024
+      }
+    }
+  }
+}
