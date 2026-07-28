@@ -72,6 +72,8 @@ nomad job stop -purge tcg-medusa-redis >/dev/null 2>&1 || true
 sed \
     -e "s|BACKEND_IMAGE_PLACEHOLDER|$BACKEND_IMAGE|g" \
     -e "s|STOREFRONT_IMAGE_PLACEHOLDER|$STOREFRONT_IMAGE|g" \
+    -e 's|NOMAD_REDIS_HOST_PLACEHOLDER|${NOMAD_IP_redis}|g' \
+    -e 's|NOMAD_REDIS_PORT_PLACEHOLDER|${NOMAD_PORT_redis}|g' \
     -e "s|DEPLOY_VERSION_PLACEHOLDER|$DEPLOY_VERSION|g" \
     "infra/jobs/tcg-medusa.nomad.template" > \
     "$NOMAD_JOBS_DIR/tcg-medusa.nomad"
