@@ -3,20 +3,13 @@ job "tcg-medusa-redis" {
   type        = "service"
 
   group "redis" {
-    network {
-      port "redis" {
-        static = 26379
-        to     = 6379
-      }
-    }
-
     task "redis" {
       driver = "docker"
 
       config {
         image = "redis:7-alpine"
-        ports = ["redis"]
-        args  = ["redis-server", "--appendonly", "yes"]
+        network_mode = "host"
+        args  = ["redis-server", "--appendonly", "yes", "--bind", "127.0.0.1", "172.17.0.1", "--port", "26379"]
         volumes = [
           "/opt/tcg-medusa/redis:/data"
         ]
