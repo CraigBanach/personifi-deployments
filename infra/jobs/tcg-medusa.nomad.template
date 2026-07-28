@@ -105,6 +105,7 @@ EOF
         data = <<EOF
 DOCKER_USERNAME="{{ with nomadVar "personifi/ghcr" }}{{ .username }}{{ end }}"
 DOCKER_PASSWORD="{{ with nomadVar "personifi/ghcr" }}{{ .password }}{{ end }}"
+MEDUSA_PUBLISHABLE_KEY="{{ with nomadVar "tcg-store/medusa-secrets" }}{{ .publishable_key }}{{ end }}"
 NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY="{{ with nomadVar "tcg-store/medusa-secrets" }}{{ .publishable_key }}{{ end }}"
 NEXT_PUBLIC_STRIPE_KEY="{{ with nomadVar "tcg-store/medusa-secrets" }}{{ .stripe_publishable_key }}{{ end }}"
 EOF
