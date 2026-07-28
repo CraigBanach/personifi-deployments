@@ -21,7 +21,7 @@ job "tcg-medusa" {
       template {
         data = <<EOF
 DATABASE_URL="{{ with nomadVar "tcg-store/medusa-database" }}{{ .database_url }}{{ end }}"
-REDIS_URL="redis://NOMAD_REDIS_HOST_PLACEHOLDER:NOMAD_REDIS_PORT_PLACEHOLDER"
+REDIS_URL="redis://{{ env "NOMAD_IP_redis" }}:{{ env "NOMAD_PORT_redis" }}"
 JWT_SECRET="{{ with nomadVar "tcg-store/medusa-secrets" }}{{ .jwt_secret }}{{ end }}"
 COOKIE_SECRET="{{ with nomadVar "tcg-store/medusa-secrets" }}{{ .cookie_secret }}{{ end }}"
 EOF
