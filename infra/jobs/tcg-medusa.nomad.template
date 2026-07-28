@@ -20,6 +20,7 @@ job "tcg-medusa" {
 
       config {
         image = "redis:7-alpine"
+        name  = "tcg-medusa-redis"
         ports = ["redis"]
         args  = ["redis-server", "--appendonly", "yes"]
         volumes = [
@@ -39,7 +40,7 @@ job "tcg-medusa" {
       template {
         data = <<EOF
 DATABASE_URL="{{ with nomadVar "tcg-store/medusa-database" }}{{ .database_url }}{{ end }}"
-REDIS_URL="redis://redis-{{ env "NOMAD_ALLOC_ID" }}:6379"
+REDIS_URL="redis://tcg-medusa-redis:6379"
 JWT_SECRET="{{ with nomadVar "tcg-store/medusa-secrets" }}{{ .jwt_secret }}{{ end }}"
 COOKIE_SECRET="{{ with nomadVar "tcg-store/medusa-secrets" }}{{ .cookie_secret }}{{ end }}"
 EOF
