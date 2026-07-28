@@ -43,7 +43,7 @@ job "traefik-simple" {
 
       resources {
         cpu    = 256
-        memory = 512
+        memory = 192
       }
     }
   }
