@@ -72,6 +72,7 @@ EOF
         STORE_CORS = "https://staging.craigscards.co.uk"
         ADMIN_CORS = "https://api.staging.craigscards.co.uk"
         AUTH_CORS  = "https://api.staging.craigscards.co.uk,https://staging.craigscards.co.uk"
+        MEDUSA_BACKEND_URL = "https://api.staging.craigscards.co.uk"
       }
 
       resources {
