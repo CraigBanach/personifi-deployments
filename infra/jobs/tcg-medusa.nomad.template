@@ -41,6 +41,9 @@ EOF
       config {
         image = "BACKEND_IMAGE_PLACEHOLDER"
         ports = ["backend"]
+        volumes = [
+          "/opt/tcg-medusa/static:/app/apps/backend/.medusa/server/static"
+        ]
 
         labels = {
           "traefik.enable" = "true"
