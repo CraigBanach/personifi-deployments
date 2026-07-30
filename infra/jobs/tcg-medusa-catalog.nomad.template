@@ -1,14 +1,14 @@
-job "tcg-medusa-config" {
+job "tcg-medusa-catalog" {
   datacenters = ["dc1"]
   type        = "batch"
 
-  group "config" {
+  group "catalog" {
     restart {
       attempts = 0
       mode     = "fail"
     }
 
-    task "apply-store-config" {
+    task "sync-catalog" {
       driver = "docker"
 
       template {
@@ -33,7 +33,7 @@ EOF
       config {
         image   = "BACKEND_IMAGE_PLACEHOLDER"
         command = "sh"
-        args    = ["-c", "pnpm medusa exec ./src/scripts/apply-store-config.ts"]
+        args    = ["-c", "pnpm medusa exec ./src/scripts/sync-catalog.ts"]
 
         auth {
           username = "${DOCKER_USERNAME}"
