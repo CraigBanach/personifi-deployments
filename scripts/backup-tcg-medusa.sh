@@ -6,6 +6,7 @@ STATIC_ROOT="${STATIC_ROOT:-/opt/tcg-medusa/static}"
 DATABASE_VAR_PATH="${DATABASE_VAR_PATH:-tcg-store/medusa-database}"
 RETENTION_DAYS="${RETENTION_DAYS:-14}"
 RCLONE_REMOTE="${RCLONE_REMOTE:-}"
+POSTGRES_IMAGE="${POSTGRES_IMAGE:-postgres:17-alpine}"
 TIMESTAMP="$(date -u +%Y%m%dT%H%M%SZ)"
 POSTGRES_DIR="$BACKUP_ROOT/postgres"
 STATIC_DIR="$BACKUP_ROOT/static"
@@ -23,7 +24,7 @@ cleanup() {
 
 trap cleanup EXIT
 
-for command in find nomad pg_dump pg_restore sha256sum tar; do
+for command in docker find nomad sha256sum tar; do
     command -v "$command" >/dev/null || {
         echo "Missing required command: $command" >&2
         exit 1
@@ -40,12 +41,18 @@ DATABASE_URL="${DATABASE_URL:-$(nomad var get -item database_url "$DATABASE_VAR_
 
 mkdir -p "$POSTGRES_DIR" "$STATIC_DIR" "$MANIFEST_DIR"
 
-pg_dump "$DATABASE_URL" \
-    --format=custom \
-    --no-owner \
-    --no-acl \
-    --file "$TEMP_DATABASE_ARCHIVE"
-pg_restore --list "$TEMP_DATABASE_ARCHIVE" >/dev/null
+docker run --rm \
+    --user "$(id -u):$(id -g)" \
+    --env DATABASE_URL \
+    --volume "$POSTGRES_DIR:/backup" \
+    "$POSTGRES_IMAGE" \
+    sh -c 'pg_dump "$DATABASE_URL" --format=custom --no-owner --no-acl --file "/backup/$1"' \
+    sh "$(basename "$TEMP_DATABASE_ARCHIVE")"
+docker run --rm \
+    --user "$(id -u):$(id -g)" \
+    --volume "$POSTGRES_DIR:/backup:ro" \
+    "$POSTGRES_IMAGE" \
+    pg_restore --list "/backup/$(basename "$TEMP_DATABASE_ARCHIVE")" >/dev/null
 
 tar -czf "$TEMP_STATIC_ARCHIVE" \
     -C "$(dirname "$STATIC_ROOT")" \

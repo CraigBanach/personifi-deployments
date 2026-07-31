@@ -8,7 +8,7 @@ Back up the database and static directory together. A media archive without the 
 
 ## Manual Backup
 
-Install the PostgreSQL client first if `pg_dump` and `pg_restore` are unavailable. Then run:
+The backup uses `postgres:17-alpine` for `pg_dump` and `pg_restore`, avoiding mismatches with the managed PostgreSQL server. Docker must be available to the `gitops` user. Run:
 
 ```bash
 sudo -u gitops bash /opt/personifi-deployments/scripts/backup-tcg-medusa.sh
@@ -17,6 +17,7 @@ sudo -u gitops bash /opt/personifi-deployments/scripts/backup-tcg-medusa.sh
 The script:
 
 - Reads the database URL from Nomad variable `tcg-store/medusa-database`.
+- Runs the PostgreSQL 17 backup client in a short-lived Docker container.
 - Creates a PostgreSQL custom-format dump.
 - Creates a compressed archive containing the `static` directory.
 - Verifies both archives before publishing them.
@@ -44,6 +45,7 @@ Optional settings belong in `/etc/default/tcg-medusa-backup`:
 ```bash
 RETENTION_DAYS=30
 RCLONE_REMOTE=b2:bucket/tcg-medusa
+POSTGRES_IMAGE=postgres:17-alpine
 ```
 
 Check a run with:
@@ -61,7 +63,7 @@ From `/opt/tcg-medusa/backups`, verify the paired files using their manifest:
 ```bash
 cd /opt/tcg-medusa/backups
 sha256sum -c manifests/tcg-medusa-TIMESTAMP.sha256
-pg_restore --list postgres/tcg-medusa-TIMESTAMP.dump >/dev/null
+docker run --rm --volume "$PWD/postgres:/backup:ro" postgres:17-alpine pg_restore --list /backup/tcg-medusa-TIMESTAMP.dump >/dev/null
 tar -tzf static/tcg-medusa-static-TIMESTAMP.tar.gz >/dev/null
 ```
 
