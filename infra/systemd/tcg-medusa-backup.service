@@ -1,0 +1,14 @@
+[Unit]
+Description=Back up TCG Medusa database and static media
+After=network-online.target nomad.service
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=gitops
+Group=gitops
+WorkingDirectory=/opt/personifi-deployments
+EnvironmentFile=-/etc/default/tcg-medusa-backup
+ExecStart=/bin/bash /opt/personifi-deployments/scripts/backup-tcg-medusa.sh
+PrivateTmp=true
+ProtectHome=true

@@ -65,7 +65,12 @@ else
         error "Missing $SECRETS_FILE and Nomad variable tcg-store/medusa-secrets"
 fi
 
-mkdir -p "$NOMAD_JOBS_DIR" /opt/tcg-medusa/redis
+mkdir -p \
+    "$NOMAD_JOBS_DIR" \
+    /opt/tcg-medusa/redis \
+    /opt/tcg-medusa/static \
+    /opt/tcg-medusa/backups/postgres \
+    /opt/tcg-medusa/backups/static
 
 nomad job stop -purge tcg-medusa-redis >/dev/null 2>&1 || true
 
