@@ -42,14 +42,14 @@ DATABASE_URL="${DATABASE_URL:-$(nomad var get -item database_url "$DATABASE_VAR_
 mkdir -p "$POSTGRES_DIR" "$STATIC_DIR" "$MANIFEST_DIR"
 
 docker run --rm \
-    --user "$(id -u):$(id -g)" \
     --env DATABASE_URL \
+    --env "HOST_UID=$(id -u)" \
+    --env "HOST_GID=$(id -g)" \
     --volume "$POSTGRES_DIR:/backup" \
     "$POSTGRES_IMAGE" \
-    sh -c 'pg_dump "$DATABASE_URL" --format=custom --no-owner --no-acl --file "/backup/$1"' \
+    sh -c 'pg_dump "$DATABASE_URL" --format=custom --no-owner --no-acl --file "/backup/$1" && chown "$HOST_UID:$HOST_GID" "/backup/$1"' \
     sh "$(basename "$TEMP_DATABASE_ARCHIVE")"
 docker run --rm \
-    --user "$(id -u):$(id -g)" \
     --volume "$POSTGRES_DIR:/backup:ro" \
     "$POSTGRES_IMAGE" \
     pg_restore --list "/backup/$(basename "$TEMP_DATABASE_ARCHIVE")" >/dev/null
