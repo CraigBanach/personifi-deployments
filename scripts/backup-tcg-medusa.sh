@@ -38,6 +38,7 @@ fi
 
 DATABASE_URL="${DATABASE_URL:-$(nomad var get -item database_url "$DATABASE_VAR_PATH")}"
 : "${DATABASE_URL:?Could not resolve DATABASE_URL from Nomad variable $DATABASE_VAR_PATH}"
+export DATABASE_URL
 
 mkdir -p "$POSTGRES_DIR" "$STATIC_DIR" "$MANIFEST_DIR"
 
