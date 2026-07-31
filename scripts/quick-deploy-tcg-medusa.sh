@@ -30,12 +30,35 @@ fi
 cd "$DEPLOY_DIR" || error "Deployment directory not found: $DEPLOY_DIR"
 
 if [ -f "$SECRETS_FILE" ]; then
+    # shellcheck disable=SC1090
     source "$SECRETS_FILE"
 
     : "${DATABASE_URL:?Set DATABASE_URL in $SECRETS_FILE}"
     : "${JWT_SECRET:?Set JWT_SECRET in $SECRETS_FILE}"
     : "${COOKIE_SECRET:?Set COOKIE_SECRET in $SECRETS_FILE}"
     : "${NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY:?Set NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY in $SECRETS_FILE}"
+
+    existing_stripe_api_key="$(nomad var get -item stripe_api_key tcg-store/medusa-secrets 2>/dev/null || true)"
+    existing_stripe_webhook_secret="$(nomad var get -item stripe_webhook_secret tcg-store/medusa-secrets 2>/dev/null || true)"
+    existing_stripe_publishable_key="$(nomad var get -item stripe_publishable_key tcg-store/medusa-secrets 2>/dev/null || true)"
+    stripe_api_key="${STRIPE_API_KEY:-$existing_stripe_api_key}"
+    stripe_webhook_secret="${STRIPE_WEBHOOK_SECRET:-$existing_stripe_webhook_secret}"
+    stripe_publishable_key="${NEXT_PUBLIC_STRIPE_KEY:-$existing_stripe_publishable_key}"
+
+    stripe_value_count=0
+    for value in "$stripe_api_key" "$stripe_webhook_secret" "$stripe_publishable_key"; do
+        if [ -n "$value" ]; then
+            stripe_value_count=$((stripe_value_count + 1))
+        fi
+    done
+
+    if [ "$stripe_value_count" -ne 0 ] && [ "$stripe_value_count" -ne 3 ]; then
+        error "Set all Stripe values in $SECRETS_FILE or Nomad, or leave all three empty to use manual payment"
+    fi
+
+    if [ "$stripe_value_count" -eq 0 ]; then
+        echo "Stripe is disabled; deploying with payment by arrangement"
+    fi
 
     cat > "$TEMP_DB" <<EOD
 {
@@ -51,7 +74,9 @@ EOD
     "jwt_secret": "$JWT_SECRET",
     "cookie_secret": "$COOKIE_SECRET",
     "publishable_key": "$NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY",
-    "stripe_publishable_key": "${NEXT_PUBLIC_STRIPE_KEY:-}"
+    "stripe_publishable_key": "$stripe_publishable_key",
+    "stripe_api_key": "$stripe_api_key",
+    "stripe_webhook_secret": "$stripe_webhook_secret"
   }
 }
 EOD
@@ -83,4 +108,7 @@ sed \
 
 nomad job run "$NOMAD_JOBS_DIR/tcg-medusa.nomad"
 
-echo "TCG Medusa deployment submitted. Check status with: nomad job status tcg-medusa"
+BACKEND_IMAGE="$BACKEND_IMAGE" bash scripts/run-tcg-medusa-config.sh
+BACKEND_IMAGE="$BACKEND_IMAGE" bash scripts/run-tcg-medusa-catalog.sh
+
+echo "TCG Medusa service, config, and catalog jobs submitted. Check status with: nomad job status tcg-medusa"

@@ -16,6 +16,9 @@ job "tcg-medusa-config" {
 DATABASE_URL="{{ with nomadVar "tcg-store/medusa-database" }}{{ .database_url }}{{ end }}"
 JWT_SECRET="{{ with nomadVar "tcg-store/medusa-secrets" }}{{ .jwt_secret }}{{ end }}"
 COOKIE_SECRET="{{ with nomadVar "tcg-store/medusa-secrets" }}{{ .cookie_secret }}{{ end }}"
+STRIPE_API_KEY="{{ with nomadVar "tcg-store/medusa-secrets" }}{{ if .stripe_api_key }}{{ .stripe_api_key }}{{ end }}{{ end }}"
+STRIPE_WEBHOOK_SECRET="{{ with nomadVar "tcg-store/medusa-secrets" }}{{ if .stripe_webhook_secret }}{{ .stripe_webhook_secret }}{{ end }}{{ end }}"
+NEXT_PUBLIC_STRIPE_KEY="{{ with nomadVar "tcg-store/medusa-secrets" }}{{ if .stripe_publishable_key }}{{ .stripe_publishable_key }}{{ end }}{{ end }}"
 EOF
         destination = "local/backend-secrets.env"
         env         = true
