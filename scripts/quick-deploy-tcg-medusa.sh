@@ -69,8 +69,8 @@ mkdir -p \
     "$NOMAD_JOBS_DIR" \
     /opt/tcg-medusa/redis \
     /opt/tcg-medusa/static \
-    /opt/tcg-medusa/backups/postgres \
-    /opt/tcg-medusa/backups/static
+    /opt/tcg-medusa/backups/static \
+    /opt/tcg-medusa/backups/manifests
 
 nomad job stop -purge tcg-medusa-redis >/dev/null 2>&1 || true
 

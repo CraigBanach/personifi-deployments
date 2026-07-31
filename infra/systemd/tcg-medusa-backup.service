@@ -1,6 +1,6 @@
 [Unit]
-Description=Back up TCG Medusa database and static media
-After=network-online.target nomad.service
+Description=Back up TCG Medusa static media
+After=network-online.target
 Wants=network-online.target
 
 [Service]
