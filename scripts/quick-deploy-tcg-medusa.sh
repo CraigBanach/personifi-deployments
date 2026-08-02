@@ -86,9 +86,21 @@ if [ -f "$SECRETS_FILE" ]; then
     existing_stripe_api_key="$(nomad var get -item stripe_api_key tcg-store/medusa-secrets 2>/dev/null || true)"
     existing_stripe_webhook_secret="$(nomad var get -item stripe_webhook_secret tcg-store/medusa-secrets 2>/dev/null || true)"
     existing_stripe_publishable_key="$(nomad var get -item stripe_publishable_key tcg-store/medusa-secrets 2>/dev/null || true)"
+    existing_contact_smtp_host="$(nomad var get -item contact_smtp_host tcg-store/medusa-secrets 2>/dev/null || true)"
+    existing_contact_smtp_port="$(nomad var get -item contact_smtp_port tcg-store/medusa-secrets 2>/dev/null || true)"
+    existing_contact_smtp_secure="$(nomad var get -item contact_smtp_secure tcg-store/medusa-secrets 2>/dev/null || true)"
+    existing_contact_smtp_user="$(nomad var get -item contact_smtp_user tcg-store/medusa-secrets 2>/dev/null || true)"
+    existing_contact_smtp_password="$(nomad var get -item contact_smtp_password tcg-store/medusa-secrets 2>/dev/null || true)"
+    existing_contact_from_email="$(nomad var get -item contact_from_email tcg-store/medusa-secrets 2>/dev/null || true)"
+    existing_contact_to_email="$(nomad var get -item contact_to_email tcg-store/medusa-secrets 2>/dev/null || true)"
     stripe_api_key="${STRIPE_API_KEY:-$existing_stripe_api_key}"
     stripe_webhook_secret="${STRIPE_WEBHOOK_SECRET:-$existing_stripe_webhook_secret}"
     stripe_publishable_key="${NEXT_PUBLIC_STRIPE_KEY:-$existing_stripe_publishable_key}"
+    contact_smtp_host="${CONTACT_SMTP_HOST:-$existing_contact_smtp_host}"
+    contact_smtp_user="${CONTACT_SMTP_USER:-$existing_contact_smtp_user}"
+    contact_smtp_password="${CONTACT_SMTP_PASSWORD:-$existing_contact_smtp_password}"
+    contact_from_email="${CONTACT_FROM_EMAIL:-$existing_contact_from_email}"
+    contact_to_email="${CONTACT_TO_EMAIL:-$existing_contact_to_email}"
 
     stripe_value_count=0
     for value in "$stripe_api_key" "$stripe_webhook_secret" "$stripe_publishable_key"; do
@@ -103,6 +115,26 @@ if [ -f "$SECRETS_FILE" ]; then
 
     if [ "$stripe_value_count" -eq 0 ]; then
         echo "Stripe is disabled; deploying with payment by arrangement"
+    fi
+
+    contact_value_count=0
+    for value in "$contact_smtp_host" "$contact_smtp_user" "$contact_smtp_password" "$contact_from_email" "$contact_to_email"; do
+        if [ -n "$value" ]; then
+            contact_value_count=$((contact_value_count + 1))
+        fi
+    done
+
+    if [ "$contact_value_count" -ne 0 ] && [ "$contact_value_count" -ne 5 ]; then
+        error "Set all contact SMTP values in $SECRETS_FILE or Nomad, or leave all five empty"
+    fi
+
+    if [ "$contact_value_count" -eq 5 ]; then
+        contact_smtp_port="${CONTACT_SMTP_PORT:-${existing_contact_smtp_port:-465}}"
+        contact_smtp_secure="${CONTACT_SMTP_SECURE:-${existing_contact_smtp_secure:-true}}"
+    else
+        contact_smtp_port=""
+        contact_smtp_secure=""
+        echo "Contact email delivery is disabled until SMTP values are configured"
     fi
 
     cat > "$TEMP_DB" <<EOD
@@ -121,7 +153,14 @@ EOD
     "publishable_key": "$NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY",
     "stripe_publishable_key": "$stripe_publishable_key",
     "stripe_api_key": "$stripe_api_key",
-    "stripe_webhook_secret": "$stripe_webhook_secret"
+    "stripe_webhook_secret": "$stripe_webhook_secret",
+    "contact_smtp_host": "$contact_smtp_host",
+    "contact_smtp_port": "$contact_smtp_port",
+    "contact_smtp_secure": "$contact_smtp_secure",
+    "contact_smtp_user": "$contact_smtp_user",
+    "contact_smtp_password": "$contact_smtp_password",
+    "contact_from_email": "$contact_from_email",
+    "contact_to_email": "$contact_to_email"
   }
 }
 EOD

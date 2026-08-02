@@ -115,6 +115,13 @@ DOCKER_PASSWORD="{{ with nomadVar "personifi/ghcr" }}{{ .password }}{{ end }}"
 MEDUSA_PUBLISHABLE_KEY="{{ with nomadVar "tcg-store/medusa-secrets" }}{{ .publishable_key }}{{ end }}"
 NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY="{{ with nomadVar "tcg-store/medusa-secrets" }}{{ .publishable_key }}{{ end }}"
 NEXT_PUBLIC_STRIPE_KEY="{{ with nomadVar "tcg-store/medusa-secrets" }}{{ .stripe_publishable_key }}{{ end }}"
+SMTP_HOST="{{ with nomadVar "tcg-store/medusa-secrets" }}{{ if index . "contact_smtp_host" }}{{ index . "contact_smtp_host" }}{{ end }}{{ end }}"
+SMTP_PORT="{{ with nomadVar "tcg-store/medusa-secrets" }}{{ if index . "contact_smtp_port" }}{{ index . "contact_smtp_port" }}{{ end }}{{ end }}"
+SMTP_SECURE="{{ with nomadVar "tcg-store/medusa-secrets" }}{{ if index . "contact_smtp_secure" }}{{ index . "contact_smtp_secure" }}{{ end }}{{ end }}"
+SMTP_USER="{{ with nomadVar "tcg-store/medusa-secrets" }}{{ if index . "contact_smtp_user" }}{{ index . "contact_smtp_user" }}{{ end }}{{ end }}"
+SMTP_PASSWORD="{{ with nomadVar "tcg-store/medusa-secrets" }}{{ if index . "contact_smtp_password" }}{{ index . "contact_smtp_password" }}{{ end }}{{ end }}"
+CONTACT_FROM_EMAIL="{{ with nomadVar "tcg-store/medusa-secrets" }}{{ if index . "contact_from_email" }}{{ index . "contact_from_email" }}{{ end }}{{ end }}"
+CONTACT_TO_EMAIL="{{ with nomadVar "tcg-store/medusa-secrets" }}{{ if index . "contact_to_email" }}{{ index . "contact_to_email" }}{{ end }}{{ end }}"
 EOF
         destination = "local/storefront-secrets.env"
         env         = true
