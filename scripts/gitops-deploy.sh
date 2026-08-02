@@ -89,6 +89,8 @@ if [ "$LOCAL_COMMIT" != "$REMOTE_COMMIT" ] || [ "$RECONCILE_UPDATED_CHECKOUT" = 
         info "  Frontend: $FRONTEND_IMAGE"
         info "  TCG enabled: ${TCG_ENABLED:-false}"
         info "  TCG Medusa enabled: ${TCG_MEDUSA_ENABLED:-false}"
+        info "  TCG Medusa environment: ${TCG_MEDUSA_ENVIRONMENT:-unset}"
+        info "  TCG Medusa release: ${TCG_MEDUSA_RELEASE_ID:-unset}"
         info "  Deployed at: $DEPLOYED_AT"
         info "  Source commit: $COMMIT_SHA"
         
