@@ -6,13 +6,21 @@ NOMAD_JOBS_DIR="/opt/nomad/jobs"
 SECRETS_FILE="$DEPLOY_DIR/.tcg-medusa.secrets.env"
 GITOPS_USER="gitops"
 
-BACKEND_IMAGE="${BACKEND_IMAGE:-ghcr.io/craigbanach/tcg-store-backend:latest}"
-STOREFRONT_IMAGE="${STOREFRONT_IMAGE:-ghcr.io/craigbanach/tcg-store-storefront:latest}"
-DEPLOYMENT_ENVIRONMENT="${DEPLOYMENT_ENVIRONMENT:?Set DEPLOYMENT_ENVIRONMENT to staging or production}"
-STOREFRONT_HOST="${STOREFRONT_HOST:?Set STOREFRONT_HOST}"
-STOREFRONT_REDIRECT_HOST="${STOREFRONT_REDIRECT_HOST:?Set STOREFRONT_REDIRECT_HOST}"
-API_HOST="${API_HOST:?Set API_HOST}"
-RUN_CATALOG="${RUN_CATALOG:?Set RUN_CATALOG to true or false}"
+requested_backend_image="${BACKEND_IMAGE:-}"
+requested_storefront_image="${STOREFRONT_IMAGE:-}"
+
+if [ -f "$DEPLOY_DIR/deployment.env" ]; then
+    # shellcheck disable=SC1091
+    source "$DEPLOY_DIR/deployment.env"
+fi
+
+BACKEND_IMAGE="${requested_backend_image:-${TCG_MEDUSA_BACKEND_IMAGE:-ghcr.io/craigbanach/tcg-store-backend:latest}}"
+STOREFRONT_IMAGE="${requested_storefront_image:-${TCG_MEDUSA_STOREFRONT_IMAGE:-ghcr.io/craigbanach/tcg-store-storefront:latest}}"
+DEPLOYMENT_ENVIRONMENT="${DEPLOYMENT_ENVIRONMENT:-${TCG_MEDUSA_ENVIRONMENT:?Set TCG_MEDUSA_ENVIRONMENT}}"
+STOREFRONT_HOST="${STOREFRONT_HOST:-${TCG_MEDUSA_STOREFRONT_HOST:?Set TCG_MEDUSA_STOREFRONT_HOST}}"
+STOREFRONT_REDIRECT_HOST="${STOREFRONT_REDIRECT_HOST:-${TCG_MEDUSA_STOREFRONT_REDIRECT_HOST:?Set TCG_MEDUSA_STOREFRONT_REDIRECT_HOST}}"
+API_HOST="${API_HOST:-${TCG_MEDUSA_API_HOST:?Set TCG_MEDUSA_API_HOST}}"
+RUN_CATALOG="${RUN_CATALOG:-${TCG_MEDUSA_RUN_CATALOG:?Set TCG_MEDUSA_RUN_CATALOG}}"
 DEPLOY_VERSION="$(date -u +%Y%m%d%H%M%S)"
 TEMP_DB="/tmp/tcg-medusa-database-vars.json"
 TEMP_SECRETS="/tmp/tcg-medusa-secret-vars.json"
@@ -57,6 +65,14 @@ if [ "$(whoami)" != "$GITOPS_USER" ]; then
 fi
 
 cd "$DEPLOY_DIR" || error "Deployment directory not found: $DEPLOY_DIR"
+
+# Migrate servers installed with a copied reconciler to the current repository version.
+installed_gitops_script="/opt/gitops/gitops-deploy.sh"
+if [ -w "$(dirname "$installed_gitops_script")" ] && \
+    ! cmp -s scripts/gitops-deploy.sh "$installed_gitops_script"; then
+    install -m 700 scripts/gitops-deploy.sh "${installed_gitops_script}.new"
+    mv "${installed_gitops_script}.new" "$installed_gitops_script"
+fi
 
 if [ -f "$SECRETS_FILE" ]; then
     # shellcheck disable=SC1090

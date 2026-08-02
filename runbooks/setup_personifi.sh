@@ -172,13 +172,8 @@ touch /var/log/gitops-deploy.log
 chown $GITOPS_USER:$GITOPS_USER /var/log/gitops-deploy.log
 
 SCRIPT_SOURCE="$DEPLOY_DIR/scripts/gitops-deploy.sh"
-SCRIPT_DEST="$GITOPS_HOME/gitops-deploy.sh"
 
-if [ -f "$SCRIPT_SOURCE" ]; then
-    cp $SCRIPT_SOURCE $SCRIPT_DEST
-    chown $GITOPS_USER:$GITOPS_USER $SCRIPT_DEST
-    chmod 700 $SCRIPT_DEST
-else
+if [ ! -f "$SCRIPT_SOURCE" ]; then
     echo -e "${RED}ERROR: gitops-deploy.sh not found in repo!${NC}"
 fi
 
@@ -193,7 +188,7 @@ Type=oneshot
 User=$GITOPS_USER
 WorkingDirectory=$GITOPS_HOME
 Environment=HOME=$GITOPS_HOME
-ExecStart=$GITOPS_HOME/gitops-deploy.sh
+ExecStart=$SCRIPT_SOURCE
 StandardOutput=journal
 StandardError=journal
 EOF
