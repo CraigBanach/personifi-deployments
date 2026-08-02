@@ -2,6 +2,8 @@
 # GitOps Deployment Script for Personifi
 # This script polls the deployment repository and deploys changes
 
+set -o pipefail
+
 DEPLOY_REPO="/opt/personifi-deployments"
 LOG_FILE="/var/log/gitops-deploy.log"
 NOMAD_JOBS_DIR="/opt/nomad/jobs"
@@ -210,14 +212,17 @@ EOD
                 exit 1
             fi
 
-            BACKEND_IMAGE="${TCG_MEDUSA_BACKEND_IMAGE:-ghcr.io/craigbanach/tcg-store-backend:latest}" \
-            STOREFRONT_IMAGE="${TCG_MEDUSA_STOREFRONT_IMAGE:-ghcr.io/craigbanach/tcg-store-storefront:latest}" \
-            DEPLOYMENT_ENVIRONMENT="${TCG_MEDUSA_ENVIRONMENT:?Set TCG_MEDUSA_ENVIRONMENT}" \
-            STOREFRONT_HOST="${TCG_MEDUSA_STOREFRONT_HOST:?Set TCG_MEDUSA_STOREFRONT_HOST}" \
-            STOREFRONT_REDIRECT_HOST="${TCG_MEDUSA_STOREFRONT_REDIRECT_HOST:?Set TCG_MEDUSA_STOREFRONT_REDIRECT_HOST}" \
-            API_HOST="${TCG_MEDUSA_API_HOST:?Set TCG_MEDUSA_API_HOST}" \
-            RUN_CATALOG="${TCG_MEDUSA_RUN_CATALOG:?Set TCG_MEDUSA_RUN_CATALOG}" \
-                bash /opt/personifi-deployments/scripts/quick-deploy-tcg-medusa.sh
+            if ! BACKEND_IMAGE="${TCG_MEDUSA_BACKEND_IMAGE:-ghcr.io/craigbanach/tcg-store-backend:latest}" \
+                STOREFRONT_IMAGE="${TCG_MEDUSA_STOREFRONT_IMAGE:-ghcr.io/craigbanach/tcg-store-storefront:latest}" \
+                DEPLOYMENT_ENVIRONMENT="${TCG_MEDUSA_ENVIRONMENT:?Set TCG_MEDUSA_ENVIRONMENT}" \
+                STOREFRONT_HOST="${TCG_MEDUSA_STOREFRONT_HOST:?Set TCG_MEDUSA_STOREFRONT_HOST}" \
+                STOREFRONT_REDIRECT_HOST="${TCG_MEDUSA_STOREFRONT_REDIRECT_HOST:?Set TCG_MEDUSA_STOREFRONT_REDIRECT_HOST}" \
+                API_HOST="${TCG_MEDUSA_API_HOST:?Set TCG_MEDUSA_API_HOST}" \
+                RUN_CATALOG="${TCG_MEDUSA_RUN_CATALOG:?Set TCG_MEDUSA_RUN_CATALOG}" \
+                    bash /opt/personifi-deployments/scripts/quick-deploy-tcg-medusa.sh 2>&1 | tee -a "$LOG_FILE"; then
+                error "TCG Medusa deployment failed"
+                exit 1
+            fi
 
             success "TCG Medusa deployment submitted"
         else
