@@ -46,7 +46,7 @@ wait_for_batch_job() {
     local job_name="$1"
 
     for _ in $(seq 1 60); do
-        if nomad job status "$job_name" | grep -q '^Status.*dead'; then
+        if nomad job status "$job_name" | grep '^Status.*dead' >/dev/null; then
             return 0
         fi
         sleep 2
