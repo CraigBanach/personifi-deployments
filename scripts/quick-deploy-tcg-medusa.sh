@@ -128,6 +128,12 @@ mkdir -p \
 
 nomad job stop -purge tcg-medusa-redis >/dev/null 2>&1 || true
 
+if [ "$DEPLOYMENT_ENVIRONMENT" = "production" ]; then
+    redirect_filter=(-e "/PRODUCTION_REDIRECT_\(START\|END\)/d")
+else
+    redirect_filter=(-e "/PRODUCTION_REDIRECT_START/,/PRODUCTION_REDIRECT_END/d")
+fi
+
 sed \
     -e "s|BACKEND_IMAGE_PLACEHOLDER|$BACKEND_IMAGE|g" \
     -e "s|STOREFRONT_IMAGE_PLACEHOLDER|$STOREFRONT_IMAGE|g" \
@@ -136,6 +142,7 @@ sed \
     -e "s|STOREFRONT_HOST_PLACEHOLDER|$STOREFRONT_HOST|g" \
     -e "s|STOREFRONT_REDIRECT_HOST_PLACEHOLDER|$STOREFRONT_REDIRECT_HOST|g" \
     -e "s|API_HOST_PLACEHOLDER|$API_HOST|g" \
+    "${redirect_filter[@]}" \
     "infra/jobs/tcg-medusa.nomad.template" > \
     "$NOMAD_JOBS_DIR/tcg-medusa.nomad"
 

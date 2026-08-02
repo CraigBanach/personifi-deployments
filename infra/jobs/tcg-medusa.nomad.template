@@ -135,6 +135,7 @@ EOF
           "traefik.http.routers.tcg-medusa-storefront-secure.tls" = "true"
           "traefik.http.routers.tcg-medusa-storefront-secure.tls.certresolver" = "letsencrypt"
 
+          # PRODUCTION_REDIRECT_START
           "traefik.http.routers.tcg-medusa-storefront-www.rule" = "Host(`STOREFRONT_REDIRECT_HOST_PLACEHOLDER`)"
           "traefik.http.routers.tcg-medusa-storefront-www.entrypoints" = "web"
           "traefik.http.routers.tcg-medusa-storefront-www.middlewares" = "tcg-medusa-storefront-www-redirect"
@@ -148,6 +149,7 @@ EOF
           "traefik.http.middlewares.tcg-medusa-storefront-www-redirect.redirectregex.regex" = "^https?://STOREFRONT_REDIRECT_HOST_PLACEHOLDER/(.*)"
           "traefik.http.middlewares.tcg-medusa-storefront-www-redirect.redirectregex.replacement" = "https://STOREFRONT_HOST_PLACEHOLDER/$${1}"
           "traefik.http.middlewares.tcg-medusa-storefront-www-redirect.redirectregex.permanent" = "true"
+          # PRODUCTION_REDIRECT_END
 
           "traefik.http.services.tcg-medusa-storefront.loadbalancer.server.port" = "8000"
         }
