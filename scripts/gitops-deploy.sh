@@ -61,17 +61,24 @@ fi
 # Check if there are new changes
 LOCAL_COMMIT=$(git rev-parse HEAD)
 REMOTE_COMMIT=$(git rev-parse origin/main 2>/dev/null || echo $LOCAL_COMMIT)
+RECONCILE_UPDATED_CHECKOUT="${GITOPS_RECONCILE_UPDATED_CHECKOUT:-false}"
 
-if [ "$LOCAL_COMMIT" != "$REMOTE_COMMIT" ]; then
-    info "🔄 New deployment detected"
-    
+if [ "$LOCAL_COMMIT" != "$REMOTE_COMMIT" ] || [ "$RECONCILE_UPDATED_CHECKOUT" = "true" ]; then
     # Get the commit details. Use reset so the deployment checkout always
     # exactly matches origin/main even when local generated files changed.
-    OLD_COMMIT=$(git rev-parse --short HEAD)
-    git reset --hard origin/main
-    git clean -fd -e .secrets.env -e .tcg-store.secrets.env -e .tcg-medusa.secrets.env
+    if [ "$LOCAL_COMMIT" != "$REMOTE_COMMIT" ]; then
+        info "🔄 New deployment detected"
+        OLD_COMMIT=$(git rev-parse --short HEAD)
+        git reset --hard origin/main
+        git clean -fd -e .secrets.env -e .tcg-store.secrets.env -e .tcg-medusa.secrets.env
+        export GITOPS_RECONCILE_UPDATED_CHECKOUT=true
+        export GITOPS_PREVIOUS_COMMIT="$OLD_COMMIT"
+        exec "$DEPLOY_REPO/scripts/gitops-deploy.sh"
+    fi
+
+    OLD_COMMIT="${GITOPS_PREVIOUS_COMMIT:-$(git rev-parse --short HEAD)}"
     NEW_COMMIT=$(git rev-parse --short HEAD)
-    
+
     info "Updating from $OLD_COMMIT to $NEW_COMMIT"
     
     # Source the new configuration
