@@ -42,6 +42,19 @@ validate_host() {
     esac
 }
 
+wait_for_batch_job() {
+    local job_name="$1"
+
+    for _ in $(seq 1 60); do
+        if nomad job status "$job_name" | grep -q '^Status.*dead'; then
+            return 0
+        fi
+        sleep 2
+    done
+
+    error "Timed out waiting for batch job $job_name"
+}
+
 case "$DEPLOYMENT_ENVIRONMENT" in
     staging|production) ;;
     *) error "DEPLOYMENT_ENVIRONMENT must be staging or production" ;;
@@ -207,6 +220,7 @@ BACKEND_IMAGE="$BACKEND_IMAGE" \
 API_HOST="$API_HOST" \
 STOREFRONT_HOST="$STOREFRONT_HOST" \
     bash scripts/run-tcg-medusa-config.sh
+wait_for_batch_job tcg-medusa-config
 
 if [ "$RUN_CATALOG" = "true" ]; then
     BACKEND_IMAGE="$BACKEND_IMAGE" \
@@ -214,6 +228,7 @@ if [ "$RUN_CATALOG" = "true" ]; then
     STOREFRONT_HOST="$STOREFRONT_HOST" \
     DEPLOYMENT_ENVIRONMENT="$DEPLOYMENT_ENVIRONMENT" \
         bash scripts/run-tcg-medusa-catalog.sh
+    wait_for_batch_job tcg-medusa-catalog
 else
     echo "Catalog synchronization skipped for $DEPLOYMENT_ENVIRONMENT"
 fi
