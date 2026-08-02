@@ -48,9 +48,9 @@ EOF
         NODE_ENV = "production"
         CI       = "true"
 
-        STORE_CORS = "https://staging.craigscards.co.uk"
-        ADMIN_CORS = "https://api.staging.craigscards.co.uk"
-        AUTH_CORS  = "https://api.staging.craigscards.co.uk,https://staging.craigscards.co.uk"
+        STORE_CORS = "https://STOREFRONT_HOST_PLACEHOLDER"
+        ADMIN_CORS = "https://API_HOST_PLACEHOLDER"
+        AUTH_CORS  = "https://API_HOST_PLACEHOLDER,https://STOREFRONT_HOST_PLACEHOLDER"
       }
 
       resources {

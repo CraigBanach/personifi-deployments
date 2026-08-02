@@ -8,6 +8,11 @@ GITOPS_USER="gitops"
 
 BACKEND_IMAGE="${BACKEND_IMAGE:-ghcr.io/craigbanach/tcg-store-backend:latest}"
 STOREFRONT_IMAGE="${STOREFRONT_IMAGE:-ghcr.io/craigbanach/tcg-store-storefront:latest}"
+DEPLOYMENT_ENVIRONMENT="${DEPLOYMENT_ENVIRONMENT:?Set DEPLOYMENT_ENVIRONMENT to staging or production}"
+STOREFRONT_HOST="${STOREFRONT_HOST:?Set STOREFRONT_HOST}"
+STOREFRONT_REDIRECT_HOST="${STOREFRONT_REDIRECT_HOST:?Set STOREFRONT_REDIRECT_HOST}"
+API_HOST="${API_HOST:?Set API_HOST}"
+RUN_CATALOG="${RUN_CATALOG:?Set RUN_CATALOG to true or false}"
 DEPLOY_VERSION="$(date -u +%Y%m%d%H%M%S)"
 TEMP_DB="/tmp/tcg-medusa-database-vars.json"
 TEMP_SECRETS="/tmp/tcg-medusa-secret-vars.json"
@@ -22,6 +27,30 @@ error() {
     echo "ERROR: $1" >&2
     exit 1
 }
+
+validate_host() {
+    case "$1" in
+        ""|.*|*.|*[!a-zA-Z0-9.-]*) error "Invalid hostname: $1" ;;
+    esac
+}
+
+case "$DEPLOYMENT_ENVIRONMENT" in
+    staging|production) ;;
+    *) error "DEPLOYMENT_ENVIRONMENT must be staging or production" ;;
+esac
+
+case "$RUN_CATALOG" in
+    true|false) ;;
+    *) error "RUN_CATALOG must be true or false" ;;
+esac
+
+validate_host "$STOREFRONT_HOST"
+validate_host "$STOREFRONT_REDIRECT_HOST"
+validate_host "$API_HOST"
+
+if [ "$DEPLOYMENT_ENVIRONMENT" = "production" ] && [ "$RUN_CATALOG" != "false" ]; then
+    error "Production deployments must set RUN_CATALOG=false"
+fi
 
 if [ "$(whoami)" != "$GITOPS_USER" ]; then
     error "Run this as $GITOPS_USER, for example: sudo -u $GITOPS_USER $0"
@@ -103,12 +132,28 @@ sed \
     -e "s|BACKEND_IMAGE_PLACEHOLDER|$BACKEND_IMAGE|g" \
     -e "s|STOREFRONT_IMAGE_PLACEHOLDER|$STOREFRONT_IMAGE|g" \
     -e "s|DEPLOY_VERSION_PLACEHOLDER|$DEPLOY_VERSION|g" \
+    -e "s|DEPLOYMENT_ENVIRONMENT_PLACEHOLDER|$DEPLOYMENT_ENVIRONMENT|g" \
+    -e "s|STOREFRONT_HOST_PLACEHOLDER|$STOREFRONT_HOST|g" \
+    -e "s|STOREFRONT_REDIRECT_HOST_PLACEHOLDER|$STOREFRONT_REDIRECT_HOST|g" \
+    -e "s|API_HOST_PLACEHOLDER|$API_HOST|g" \
     "infra/jobs/tcg-medusa.nomad.template" > \
     "$NOMAD_JOBS_DIR/tcg-medusa.nomad"
 
 nomad job run "$NOMAD_JOBS_DIR/tcg-medusa.nomad"
 
-BACKEND_IMAGE="$BACKEND_IMAGE" bash scripts/run-tcg-medusa-config.sh
-BACKEND_IMAGE="$BACKEND_IMAGE" bash scripts/run-tcg-medusa-catalog.sh
+BACKEND_IMAGE="$BACKEND_IMAGE" \
+API_HOST="$API_HOST" \
+STOREFRONT_HOST="$STOREFRONT_HOST" \
+    bash scripts/run-tcg-medusa-config.sh
+
+if [ "$RUN_CATALOG" = "true" ]; then
+    BACKEND_IMAGE="$BACKEND_IMAGE" \
+    API_HOST="$API_HOST" \
+    STOREFRONT_HOST="$STOREFRONT_HOST" \
+    DEPLOYMENT_ENVIRONMENT="$DEPLOYMENT_ENVIRONMENT" \
+        bash scripts/run-tcg-medusa-catalog.sh
+else
+    echo "Catalog synchronization skipped for $DEPLOYMENT_ENVIRONMENT"
+fi
 
 echo "TCG Medusa service, config, and catalog jobs submitted. Check status with: nomad job status tcg-medusa"

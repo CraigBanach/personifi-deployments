@@ -50,10 +50,10 @@ EOF
         labels = {
           "traefik.enable" = "true"
 
-          "traefik.http.routers.tcg-medusa-api.rule" = "Host(`api.staging.craigscards.co.uk`)"
+          "traefik.http.routers.tcg-medusa-api.rule" = "Host(`API_HOST_PLACEHOLDER`)"
           "traefik.http.routers.tcg-medusa-api.entrypoints" = "web"
 
-          "traefik.http.routers.tcg-medusa-api-secure.rule" = "Host(`api.staging.craigscards.co.uk`)"
+          "traefik.http.routers.tcg-medusa-api-secure.rule" = "Host(`API_HOST_PLACEHOLDER`)"
           "traefik.http.routers.tcg-medusa-api-secure.entrypoints" = "websecure"
           "traefik.http.routers.tcg-medusa-api-secure.tls" = "true"
           "traefik.http.routers.tcg-medusa-api-secure.tls.certresolver" = "letsencrypt"
@@ -74,10 +74,11 @@ EOF
         CI = "true"
         PNPM_CONFIG_CONFIRM_MODULES_PURGE = "false"
 
-        STORE_CORS = "https://staging.craigscards.co.uk"
-        ADMIN_CORS = "https://api.staging.craigscards.co.uk"
-        AUTH_CORS  = "https://api.staging.craigscards.co.uk,https://staging.craigscards.co.uk"
-        MEDUSA_BACKEND_URL = "https://api.staging.craigscards.co.uk"
+        DEPLOYMENT_ENV = "DEPLOYMENT_ENVIRONMENT_PLACEHOLDER"
+        STORE_CORS = "https://STOREFRONT_HOST_PLACEHOLDER"
+        ADMIN_CORS = "https://API_HOST_PLACEHOLDER"
+        AUTH_CORS  = "https://API_HOST_PLACEHOLDER,https://STOREFRONT_HOST_PLACEHOLDER"
+        MEDUSA_BACKEND_URL = "https://API_HOST_PLACEHOLDER"
       }
 
       resources {
@@ -126,13 +127,27 @@ EOF
         labels = {
           "traefik.enable" = "true"
 
-          "traefik.http.routers.tcg-medusa-storefront.rule" = "Host(`staging.craigscards.co.uk`)"
+          "traefik.http.routers.tcg-medusa-storefront.rule" = "Host(`STOREFRONT_HOST_PLACEHOLDER`)"
           "traefik.http.routers.tcg-medusa-storefront.entrypoints" = "web"
 
-          "traefik.http.routers.tcg-medusa-storefront-secure.rule" = "Host(`staging.craigscards.co.uk`)"
+          "traefik.http.routers.tcg-medusa-storefront-secure.rule" = "Host(`STOREFRONT_HOST_PLACEHOLDER`)"
           "traefik.http.routers.tcg-medusa-storefront-secure.entrypoints" = "websecure"
           "traefik.http.routers.tcg-medusa-storefront-secure.tls" = "true"
           "traefik.http.routers.tcg-medusa-storefront-secure.tls.certresolver" = "letsencrypt"
+
+          "traefik.http.routers.tcg-medusa-storefront-www.rule" = "Host(`STOREFRONT_REDIRECT_HOST_PLACEHOLDER`)"
+          "traefik.http.routers.tcg-medusa-storefront-www.entrypoints" = "web"
+          "traefik.http.routers.tcg-medusa-storefront-www.middlewares" = "tcg-medusa-storefront-www-redirect"
+
+          "traefik.http.routers.tcg-medusa-storefront-www-secure.rule" = "Host(`STOREFRONT_REDIRECT_HOST_PLACEHOLDER`)"
+          "traefik.http.routers.tcg-medusa-storefront-www-secure.entrypoints" = "websecure"
+          "traefik.http.routers.tcg-medusa-storefront-www-secure.tls" = "true"
+          "traefik.http.routers.tcg-medusa-storefront-www-secure.tls.certresolver" = "letsencrypt"
+          "traefik.http.routers.tcg-medusa-storefront-www-secure.middlewares" = "tcg-medusa-storefront-www-redirect"
+
+          "traefik.http.middlewares.tcg-medusa-storefront-www-redirect.redirectregex.regex" = "^https?://STOREFRONT_REDIRECT_HOST_PLACEHOLDER/(.*)"
+          "traefik.http.middlewares.tcg-medusa-storefront-www-redirect.redirectregex.replacement" = "https://STOREFRONT_HOST_PLACEHOLDER/$${1}"
+          "traefik.http.middlewares.tcg-medusa-storefront-www-redirect.redirectregex.permanent" = "true"
 
           "traefik.http.services.tcg-medusa-storefront.loadbalancer.server.port" = "8000"
         }
@@ -148,10 +163,11 @@ EOF
         PORT     = "8000"
         DEPLOY_VERSION = "DEPLOY_VERSION_PLACEHOLDER"
 
-        MEDUSA_BACKEND_URL             = "https://api.staging.craigscards.co.uk"
-        NEXT_PUBLIC_MEDUSA_BACKEND_URL = "https://api.staging.craigscards.co.uk"
+        DEPLOYMENT_ENV                 = "DEPLOYMENT_ENVIRONMENT_PLACEHOLDER"
+        MEDUSA_BACKEND_URL             = "https://API_HOST_PLACEHOLDER"
+        NEXT_PUBLIC_MEDUSA_BACKEND_URL = "https://API_HOST_PLACEHOLDER"
         NEXT_PUBLIC_DEFAULT_REGION     = "gb"
-        NEXT_PUBLIC_BASE_URL           = "https://staging.craigscards.co.uk"
+        NEXT_PUBLIC_BASE_URL           = "https://STOREFRONT_HOST_PLACEHOLDER"
       }
 
       resources {
