@@ -150,33 +150,53 @@ if [ -f "$SECRETS_FILE" ]; then
         echo "Contact email delivery is disabled until SMTP values are configured"
     fi
 
-    cat > "$TEMP_DB" <<EOD
-{
-  "Items": {
-    "database_url": "$DATABASE_URL"
-  }
-}
-EOD
+    export DATABASE_URL JWT_SECRET COOKIE_SECRET NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY
+    export stripe_publishable_key stripe_api_key stripe_webhook_secret
+    export contact_smtp_host contact_smtp_port contact_smtp_secure
+    export contact_smtp_user contact_smtp_password contact_from_email contact_to_email
 
-    cat > "$TEMP_SECRETS" <<EOD
-{
-  "Items": {
-    "jwt_secret": "$JWT_SECRET",
-    "cookie_secret": "$COOKIE_SECRET",
-    "publishable_key": "$NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY",
-    "stripe_publishable_key": "$stripe_publishable_key",
-    "stripe_api_key": "$stripe_api_key",
-    "stripe_webhook_secret": "$stripe_webhook_secret",
-    "contact_smtp_host": "$contact_smtp_host",
-    "contact_smtp_port": "$contact_smtp_port",
-    "contact_smtp_secure": "$contact_smtp_secure",
-    "contact_smtp_user": "$contact_smtp_user",
-    "contact_smtp_password": "$contact_smtp_password",
-    "contact_from_email": "$contact_from_email",
-    "contact_to_email": "$contact_to_email"
-  }
+    python3 - "$TEMP_DB" "$TEMP_SECRETS" <<'PY'
+import json
+import os
+import sys
+
+database_path, secrets_path = sys.argv[1:]
+
+with open(database_path, "w", encoding="utf-8") as database_file:
+    json.dump({"Items": {"database_url": os.environ["DATABASE_URL"]}}, database_file)
+
+secret_names = (
+    "jwt_secret",
+    "cookie_secret",
+    "publishable_key",
+    "stripe_publishable_key",
+    "stripe_api_key",
+    "stripe_webhook_secret",
+    "contact_smtp_host",
+    "contact_smtp_port",
+    "contact_smtp_secure",
+    "contact_smtp_user",
+    "contact_smtp_password",
+    "contact_from_email",
+    "contact_to_email",
+)
+environment_names = {
+    "publishable_key": "NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY",
+    "jwt_secret": "JWT_SECRET",
+    "cookie_secret": "COOKIE_SECRET",
 }
-EOD
+
+with open(secrets_path, "w", encoding="utf-8") as secrets_file:
+    json.dump(
+        {
+            "Items": {
+                name: os.environ[environment_names.get(name, name)]
+                for name in secret_names
+            }
+        },
+        secrets_file,
+    )
+PY
 
     nomad var put -force tcg-store/medusa-database @"$TEMP_DB"
     nomad var put -force tcg-store/medusa-secrets @"$TEMP_SECRETS"
