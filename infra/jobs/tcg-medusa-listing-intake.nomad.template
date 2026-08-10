@@ -1,0 +1,64 @@
+job "tcg-medusa-listing-intake" {
+  datacenters = ["dc1"]
+  type        = "batch"
+
+  group "listing-intake" {
+    restart {
+      attempts = 0
+      mode     = "fail"
+    }
+
+    task "sync-listing-intake" {
+      driver = "docker"
+
+      template {
+        data = <<EOF
+DATABASE_URL="{{ with nomadVar "tcg-store/medusa-database" }}{{ .database_url }}{{ end }}"
+JWT_SECRET="{{ with nomadVar "tcg-store/medusa-secrets" }}{{ .jwt_secret }}{{ end }}"
+COOKIE_SECRET="{{ with nomadVar "tcg-store/medusa-secrets" }}{{ .cookie_secret }}{{ end }}"
+EOF
+        destination = "local/backend-secrets.env"
+        env         = true
+      }
+
+      template {
+        data = <<EOF
+DOCKER_USERNAME="{{ with nomadVar "personifi/ghcr" }}{{ .username }}{{ end }}"
+DOCKER_PASSWORD="{{ with nomadVar "personifi/ghcr" }}{{ .password }}{{ end }}"
+EOF
+        destination = "local/docker-auth.env"
+        env         = true
+      }
+
+      config {
+        image   = "BACKEND_IMAGE_PLACEHOLDER"
+        command = "sh"
+        args    = ["-c", "pnpm medusa exec ./src/scripts/sync-listing-intake.ts"]
+        volumes = [
+          "/opt/tcg-medusa/static:/app/apps/backend/.medusa/server/static"
+        ]
+
+        auth {
+          username = "${DOCKER_USERNAME}"
+          password = "${DOCKER_PASSWORD}"
+        }
+      }
+
+      env {
+        NODE_ENV = "production"
+        CI       = "true"
+
+        STORE_CORS = "https://STOREFRONT_HOST_PLACEHOLDER"
+        ADMIN_CORS = "https://API_HOST_PLACEHOLDER"
+        AUTH_CORS  = "https://API_HOST_PLACEHOLDER,https://STOREFRONT_HOST_PLACEHOLDER"
+        MEDUSA_BACKEND_URL = "https://API_HOST_PLACEHOLDER"
+        CATALOG_INTAKE_MEDIA_DIR = "/app/apps/backend/.medusa/server/static/catalog"
+      }
+
+      resources {
+        cpu    = 500
+        memory = 384
+      }
+    }
+  }
+}
