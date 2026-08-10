@@ -38,10 +38,6 @@ EOF
           "/opt/tcg-medusa/static:/app/apps/backend/.medusa/server/static",
           "/opt/tcg-medusa/catalog-intake:/catalog-intake:ro"
         ]
-        volumes = [
-          "/opt/tcg-medusa/static:/app/apps/backend/.medusa/server/static"
-        ]
-
         auth {
           username = "${DOCKER_USERNAME}"
           password = "${DOCKER_PASSWORD}"
