@@ -50,6 +50,6 @@ sed \
     "infra/jobs/tcg-medusa-listing-intake.nomad.template" > \
     "$NOMAD_JOBS_DIR/tcg-medusa-listing-intake.nomad"
 
-nomad job run "$NOMAD_JOBS_DIR/tcg-medusa-listing-intake.nomad"
+nomad job run -force "$NOMAD_JOBS_DIR/tcg-medusa-listing-intake.nomad"
 
 echo "TCG Medusa listing-intake batch job submitted. Check status with: nomad job status tcg-medusa-listing-intake"
