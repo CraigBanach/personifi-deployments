@@ -35,6 +35,10 @@ EOF
         command = "sh"
         args    = ["-c", "pnpm medusa exec ./src/scripts/sync-listing-intake.ts"]
         volumes = [
+          "/opt/tcg-medusa/static:/app/apps/backend/.medusa/server/static",
+          "/opt/tcg-medusa/catalog-intake:/catalog-intake:ro"
+        ]
+        volumes = [
           "/opt/tcg-medusa/static:/app/apps/backend/.medusa/server/static"
         ]
 
@@ -53,6 +57,7 @@ EOF
         AUTH_CORS  = "https://API_HOST_PLACEHOLDER,https://STOREFRONT_HOST_PLACEHOLDER"
         MEDUSA_BACKEND_URL = "https://API_HOST_PLACEHOLDER"
         CATALOG_INTAKE_MEDIA_DIR = "/app/apps/backend/.medusa/server/static/catalog"
+        CATALOG_INTAKE_CSV_PATH  = "/catalog-intake/listing-intake.csv"
       }
 
       resources {
