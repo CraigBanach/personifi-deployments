@@ -50,6 +50,9 @@ sed \
     "infra/jobs/tcg-medusa-listing-intake.nomad.template" > \
     "$NOMAD_JOBS_DIR/tcg-medusa-listing-intake.nomad"
 
-nomad job run -force "$NOMAD_JOBS_DIR/tcg-medusa-listing-intake.nomad"
+# Nomad does not rerun an unchanged terminal batch job. Purge any completed
+# intake job so this submission always creates a fresh allocation.
+nomad job stop -purge tcg-medusa-listing-intake >/dev/null 2>&1 || true
+nomad job run "$NOMAD_JOBS_DIR/tcg-medusa-listing-intake.nomad"
 
 echo "TCG Medusa listing-intake batch job submitted. Check status with: nomad job status tcg-medusa-listing-intake"
