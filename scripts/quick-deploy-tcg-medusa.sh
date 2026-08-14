@@ -106,6 +106,12 @@ if [ -f "$SECRETS_FILE" ]; then
     existing_contact_smtp_password="$(nomad var get -item contact_smtp_password tcg-store/medusa-secrets 2>/dev/null || true)"
     existing_contact_from_email="$(nomad var get -item contact_from_email tcg-store/medusa-secrets 2>/dev/null || true)"
     existing_contact_to_email="$(nomad var get -item contact_to_email tcg-store/medusa-secrets 2>/dev/null || true)"
+    existing_transactional_smtp_host="$(nomad var get -item transactional_smtp_host tcg-store/medusa-secrets 2>/dev/null || true)"
+    existing_transactional_smtp_port="$(nomad var get -item transactional_smtp_port tcg-store/medusa-secrets 2>/dev/null || true)"
+    existing_transactional_smtp_secure="$(nomad var get -item transactional_smtp_secure tcg-store/medusa-secrets 2>/dev/null || true)"
+    existing_transactional_smtp_user="$(nomad var get -item transactional_smtp_user tcg-store/medusa-secrets 2>/dev/null || true)"
+    existing_transactional_smtp_password="$(nomad var get -item transactional_smtp_password tcg-store/medusa-secrets 2>/dev/null || true)"
+    existing_transactional_from_email="$(nomad var get -item transactional_from_email tcg-store/medusa-secrets 2>/dev/null || true)"
     stripe_api_key="${STRIPE_API_KEY:-$existing_stripe_api_key}"
     stripe_webhook_secret="${STRIPE_WEBHOOK_SECRET:-$existing_stripe_webhook_secret}"
     stripe_publishable_key="${NEXT_PUBLIC_STRIPE_KEY:-$existing_stripe_publishable_key}"
@@ -114,6 +120,10 @@ if [ -f "$SECRETS_FILE" ]; then
     contact_smtp_password="${CONTACT_SMTP_PASSWORD:-$existing_contact_smtp_password}"
     contact_from_email="${CONTACT_FROM_EMAIL:-$existing_contact_from_email}"
     contact_to_email="${CONTACT_TO_EMAIL:-$existing_contact_to_email}"
+    transactional_smtp_host="${TRANSACTIONAL_SMTP_HOST:-$existing_transactional_smtp_host}"
+    transactional_smtp_user="${TRANSACTIONAL_SMTP_USER:-$existing_transactional_smtp_user}"
+    transactional_smtp_password="${TRANSACTIONAL_SMTP_PASSWORD:-$existing_transactional_smtp_password}"
+    transactional_from_email="${TRANSACTIONAL_FROM_EMAIL:-$existing_transactional_from_email}"
 
     stripe_value_count=0
     for value in "$stripe_api_key" "$stripe_webhook_secret" "$stripe_publishable_key"; do
@@ -150,10 +160,32 @@ if [ -f "$SECRETS_FILE" ]; then
         echo "Contact email delivery is disabled until SMTP values are configured"
     fi
 
+    transactional_value_count=0
+    for value in "$transactional_smtp_host" "$transactional_smtp_user" "$transactional_smtp_password" "$transactional_from_email"; do
+        if [ -n "$value" ]; then
+            transactional_value_count=$((transactional_value_count + 1))
+        fi
+    done
+
+    if [ "$transactional_value_count" -ne 0 ] && [ "$transactional_value_count" -ne 4 ]; then
+        error "Set all transactional SMTP values in $SECRETS_FILE or Nomad, or leave all four empty"
+    fi
+
+    if [ "$transactional_value_count" -eq 4 ]; then
+        transactional_smtp_port="${TRANSACTIONAL_SMTP_PORT:-${existing_transactional_smtp_port:-587}}"
+        transactional_smtp_secure="${TRANSACTIONAL_SMTP_SECURE:-${existing_transactional_smtp_secure:-false}}"
+    else
+        transactional_smtp_port=""
+        transactional_smtp_secure=""
+        echo "Transactional email delivery is disabled until SMTP values are configured"
+    fi
+
     export DATABASE_URL JWT_SECRET COOKIE_SECRET NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY
     export stripe_publishable_key stripe_api_key stripe_webhook_secret
     export contact_smtp_host contact_smtp_port contact_smtp_secure
     export contact_smtp_user contact_smtp_password contact_from_email contact_to_email
+    export transactional_smtp_host transactional_smtp_port transactional_smtp_secure
+    export transactional_smtp_user transactional_smtp_password transactional_from_email
 
     python3 - "$TEMP_DB" "$TEMP_SECRETS" <<'PY'
 import json
@@ -179,6 +211,12 @@ secret_names = (
     "contact_smtp_password",
     "contact_from_email",
     "contact_to_email",
+    "transactional_smtp_host",
+    "transactional_smtp_port",
+    "transactional_smtp_secure",
+    "transactional_smtp_user",
+    "transactional_smtp_password",
+    "transactional_from_email",
 )
 environment_names = {
     "publishable_key": "NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY",

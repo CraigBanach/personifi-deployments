@@ -26,6 +26,12 @@ JWT_SECRET="{{ with nomadVar "tcg-store/medusa-secrets" }}{{ .jwt_secret }}{{ en
 COOKIE_SECRET="{{ with nomadVar "tcg-store/medusa-secrets" }}{{ .cookie_secret }}{{ end }}"
 STRIPE_API_KEY="{{ with nomadVar "tcg-store/medusa-secrets" }}{{ if .stripe_api_key }}{{ .stripe_api_key }}{{ end }}{{ end }}"
 STRIPE_WEBHOOK_SECRET="{{ with nomadVar "tcg-store/medusa-secrets" }}{{ if .stripe_webhook_secret }}{{ .stripe_webhook_secret }}{{ end }}{{ end }}"
+TRANSACTIONAL_SMTP_HOST="{{ with nomadVar "tcg-store/medusa-secrets" }}{{ if index . "transactional_smtp_host" }}{{ index . "transactional_smtp_host" }}{{ end }}{{ end }}"
+TRANSACTIONAL_SMTP_PORT="{{ with nomadVar "tcg-store/medusa-secrets" }}{{ if index . "transactional_smtp_port" }}{{ index . "transactional_smtp_port" }}{{ end }}{{ end }}"
+TRANSACTIONAL_SMTP_SECURE="{{ with nomadVar "tcg-store/medusa-secrets" }}{{ if index . "transactional_smtp_secure" }}{{ index . "transactional_smtp_secure" }}{{ end }}{{ end }}"
+TRANSACTIONAL_SMTP_USER="{{ with nomadVar "tcg-store/medusa-secrets" }}{{ if index . "transactional_smtp_user" }}{{ index . "transactional_smtp_user" }}{{ end }}{{ end }}"
+TRANSACTIONAL_SMTP_PASSWORD="{{ with nomadVar "tcg-store/medusa-secrets" }}{{ if index . "transactional_smtp_password" }}{{ index . "transactional_smtp_password" }}{{ end }}{{ end }}"
+TRANSACTIONAL_FROM_EMAIL="{{ with nomadVar "tcg-store/medusa-secrets" }}{{ if index . "transactional_from_email" }}{{ index . "transactional_from_email" }}{{ end }}{{ end }}"
 EOF
         destination = "local/backend-secrets.env"
         env         = true
