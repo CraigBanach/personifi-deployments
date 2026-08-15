@@ -161,7 +161,7 @@ EOF
           "traefik.http.routers.tcg-medusa-storefront-www-secure.middlewares" = "tcg-medusa-storefront-www-redirect"
 
           "traefik.http.middlewares.tcg-medusa-storefront-www-redirect.redirectregex.regex" = "^https?://STOREFRONT_REDIRECT_HOST_PLACEHOLDER/(.*)"
-          "traefik.http.middlewares.tcg-medusa-storefront-www-redirect.redirectregex.replacement" = "https://STOREFRONT_HOST_PLACEHOLDER/$${1}"
+          "traefik.http.middlewares.tcg-medusa-storefront-www-redirect.redirectregex.replacement" = "https://STOREFRONT_HOST_PLACEHOLDER/$1"
           "traefik.http.middlewares.tcg-medusa-storefront-www-redirect.redirectregex.permanent" = "true"
           # PRODUCTION_REDIRECT_END
 
