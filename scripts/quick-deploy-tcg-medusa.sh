@@ -266,15 +266,15 @@ else
         error "Missing $SECRETS_FILE and Nomad variable $VAR_PATH/secrets"
 fi
 
-# Retire unqualified jobs before moving their mounted production state.
-nomad job stop -purge tcg-medusa >/dev/null 2>&1 || true
-nomad job stop -purge tcg-medusa-redis >/dev/null 2>&1 || true
 for directory in redis static backups; do
     if [ -d "/opt/tcg-medusa/$directory" ] && [ ! -e "$STATE_PATH/$directory" ]; then
-        mkdir -p "$STATE_PATH"
-        mv "/opt/tcg-medusa/$directory" "$STATE_PATH/$directory"
+        error "Move /opt/tcg-medusa/$directory to $STATE_PATH as root before deploying"
     fi
 done
+
+# Legacy jobs are retired only after state is confirmed in its qualified path.
+nomad job stop -purge tcg-medusa >/dev/null 2>&1 || true
+nomad job stop -purge tcg-medusa-redis >/dev/null 2>&1 || true
 
 mkdir -p \
     "$NOMAD_JOBS_DIR" \
