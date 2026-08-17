@@ -41,8 +41,8 @@ SECRETS_FILE="$DEPLOY_DIR/.tcg-medusa-$DEPLOYMENT_ENVIRONMENT.secrets.env"
 VAR_PATH="tcg-store/medusa/$DEPLOYMENT_ENVIRONMENT"
 STATE_PATH="/opt/tcg-medusa/$DEPLOYMENT_ENVIRONMENT"
 SERVICE_JOB="tcg-medusa-$DEPLOYMENT_ENVIRONMENT"
-TEMP_DB="$(mktemp)"
-TEMP_SECRETS="$(mktemp)"
+TEMP_DB="$(mktemp --suffix=.json)"
+TEMP_SECRETS="$(mktemp --suffix=.json)"
 
 cleanup() {
     rm -f "$TEMP_DB" "$TEMP_SECRETS"
@@ -257,8 +257,8 @@ with open(secrets_path, "w", encoding="utf-8") as secrets_file:
     )
 PY
 
-    nomad var put -force -in=json "$VAR_PATH/database" "@$TEMP_DB"
-    nomad var put -force -in=json "$VAR_PATH/secrets" "@$TEMP_SECRETS"
+    nomad var put -force "$VAR_PATH/database" "@$TEMP_DB"
+    nomad var put -force "$VAR_PATH/secrets" "@$TEMP_SECRETS"
 else
     nomad var get "$VAR_PATH/database" >/dev/null || \
         error "Missing $SECRETS_FILE and Nomad variable $VAR_PATH/database"
