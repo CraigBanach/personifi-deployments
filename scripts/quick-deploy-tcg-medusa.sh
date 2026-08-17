@@ -1,29 +1,48 @@
 #!/bin/bash
 set -euo pipefail
+umask 077
 
 DEPLOY_DIR="/opt/personifi-deployments"
 NOMAD_JOBS_DIR="/opt/nomad/jobs"
-SECRETS_FILE="$DEPLOY_DIR/.tcg-medusa.secrets.env"
 GITOPS_USER="gitops"
 
 requested_backend_image="${BACKEND_IMAGE:-}"
 requested_storefront_image="${STOREFRONT_IMAGE:-}"
 
-if [ -f "$DEPLOY_DIR/deployment.env" ]; then
-    # shellcheck disable=SC1091
-    source "$DEPLOY_DIR/deployment.env"
+REQUESTED_ENVIRONMENT="${DEPLOYMENT_ENVIRONMENT:-${1:-production}}"
+case "$REQUESTED_ENVIRONMENT" in
+    production) ;;
+    *) echo "ERROR: This host only deploys the production environment" >&2; exit 1 ;;
+esac
+
+MANIFEST_FILE="$DEPLOY_DIR/environments/tcg-medusa-production.env"
+if [ ! -f "$MANIFEST_FILE" ]; then
+    echo "ERROR: Deployment manifest not found: $MANIFEST_FILE" >&2
+    exit 1
+fi
+# shellcheck disable=SC1091
+source "$MANIFEST_FILE"
+
+if [ "${TCG_MEDUSA_ENVIRONMENT:-}" != "$REQUESTED_ENVIRONMENT" ]; then
+    echo "ERROR: Manifest environment does not match requested environment $REQUESTED_ENVIRONMENT" >&2
+    exit 1
 fi
 
-BACKEND_IMAGE="${requested_backend_image:-${TCG_MEDUSA_BACKEND_IMAGE:-ghcr.io/craigbanach/tcg-store-backend:latest}}"
-STOREFRONT_IMAGE="${requested_storefront_image:-${TCG_MEDUSA_STOREFRONT_IMAGE:-ghcr.io/craigbanach/tcg-store-storefront:latest}}"
-DEPLOYMENT_ENVIRONMENT="${DEPLOYMENT_ENVIRONMENT:-${TCG_MEDUSA_ENVIRONMENT:?Set TCG_MEDUSA_ENVIRONMENT}}"
+BACKEND_IMAGE="${requested_backend_image:-${TCG_MEDUSA_BACKEND_IMAGE:?Set TCG_MEDUSA_BACKEND_IMAGE}}"
+STOREFRONT_IMAGE="${requested_storefront_image:-${TCG_MEDUSA_STOREFRONT_IMAGE:?Set TCG_MEDUSA_STOREFRONT_IMAGE}}"
+DEPLOYMENT_ENVIRONMENT="${TCG_MEDUSA_ENVIRONMENT:?Set TCG_MEDUSA_ENVIRONMENT}"
 STOREFRONT_HOST="${STOREFRONT_HOST:-${TCG_MEDUSA_STOREFRONT_HOST:?Set TCG_MEDUSA_STOREFRONT_HOST}}"
 STOREFRONT_REDIRECT_HOST="${STOREFRONT_REDIRECT_HOST:-${TCG_MEDUSA_STOREFRONT_REDIRECT_HOST:?Set TCG_MEDUSA_STOREFRONT_REDIRECT_HOST}}"
 API_HOST="${API_HOST:-${TCG_MEDUSA_API_HOST:?Set TCG_MEDUSA_API_HOST}}"
+RUN_CONFIG="${RUN_CONFIG:-${TCG_MEDUSA_RUN_CONFIG:?Set TCG_MEDUSA_RUN_CONFIG}}"
 RUN_CATALOG="${RUN_CATALOG:-${TCG_MEDUSA_RUN_CATALOG:?Set TCG_MEDUSA_RUN_CATALOG}}"
 DEPLOY_VERSION="$(date -u +%Y%m%d%H%M%S)"
-TEMP_DB="/tmp/tcg-medusa-database-vars.json"
-TEMP_SECRETS="/tmp/tcg-medusa-secret-vars.json"
+SECRETS_FILE="$DEPLOY_DIR/.tcg-medusa-$DEPLOYMENT_ENVIRONMENT.secrets.env"
+VAR_PATH="tcg-store/medusa/$DEPLOYMENT_ENVIRONMENT"
+STATE_PATH="/opt/tcg-medusa/$DEPLOYMENT_ENVIRONMENT"
+SERVICE_JOB="tcg-medusa-$DEPLOYMENT_ENVIRONMENT"
+TEMP_DB="$(mktemp)"
+TEMP_SECRETS="$(mktemp)"
 
 cleanup() {
     rm -f "$TEMP_DB" "$TEMP_SECRETS"
@@ -42,35 +61,31 @@ validate_host() {
     esac
 }
 
-wait_for_batch_job() {
-    local job_name="$1"
-
-    for _ in $(seq 1 60); do
-        if nomad job status "$job_name" | grep '^Status.*dead' >/dev/null; then
-            return 0
-        fi
-        sleep 2
-    done
-
-    error "Timed out waiting for batch job $job_name"
-}
-
-case "$DEPLOYMENT_ENVIRONMENT" in
-    staging|production) ;;
-    *) error "DEPLOYMENT_ENVIRONMENT must be staging or production" ;;
+case "$RUN_CONFIG:$RUN_CATALOG" in
+    true:true|true:false|false:true|false:false) ;;
+    *) error "RUN_CONFIG and RUN_CATALOG must be true or false" ;;
 esac
 
-case "$RUN_CATALOG" in
-    true|false) ;;
-    *) error "RUN_CATALOG must be true or false" ;;
+case "$BACKEND_IMAGE:$STOREFRONT_IMAGE" in
+    *:latest*|*":latest"*) error "Mutable latest image references are not allowed" ;;
+esac
+
+case "$DEPLOYMENT_ENVIRONMENT:$STOREFRONT_HOST:$STOREFRONT_REDIRECT_HOST:$API_HOST" in
+    production:freesplash.co.uk:www.freesplash.co.uk:api.freesplash.co.uk) ;;
+    *) error "Hostnames do not match the approved $DEPLOYMENT_ENVIRONMENT bindings" ;;
 esac
 
 validate_host "$STOREFRONT_HOST"
 validate_host "$STOREFRONT_REDIRECT_HOST"
 validate_host "$API_HOST"
 
-if [ "$DEPLOYMENT_ENVIRONMENT" = "production" ] && [ "$RUN_CATALOG" != "false" ]; then
+if [ "$RUN_CATALOG" != "false" ]; then
     error "Production deployments must set RUN_CATALOG=false"
+fi
+
+if [[ ! "$BACKEND_IMAGE" =~ @sha256:[0-9a-f]{64}$ ]] || \
+    [[ ! "$STOREFRONT_IMAGE" =~ @sha256:[0-9a-f]{64}$ ]]; then
+    error "Production backend and storefront images must be digest-pinned"
 fi
 
 if [ "$(whoami)" != "$GITOPS_USER" ]; then
@@ -78,6 +93,12 @@ if [ "$(whoami)" != "$GITOPS_USER" ]; then
 fi
 
 cd "$DEPLOY_DIR" || error "Deployment directory not found: $DEPLOY_DIR"
+
+# Preserve the existing production secret file during the one-time split.
+if [ ! -f "$SECRETS_FILE" ] && [ -f "$DEPLOY_DIR/.tcg-medusa.secrets.env" ]; then
+    mv "$DEPLOY_DIR/.tcg-medusa.secrets.env" "$SECRETS_FILE"
+    chmod 600 "$SECRETS_FILE"
+fi
 
 # Migrate servers installed with a copied reconciler to the current repository version.
 installed_gitops_script="/opt/gitops/gitops-deploy.sh"
@@ -96,22 +117,22 @@ if [ -f "$SECRETS_FILE" ]; then
     : "${COOKIE_SECRET:?Set COOKIE_SECRET in $SECRETS_FILE}"
     : "${NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY:?Set NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY in $SECRETS_FILE}"
 
-    existing_stripe_api_key="$(nomad var get -item stripe_api_key tcg-store/medusa-secrets 2>/dev/null || true)"
-    existing_stripe_webhook_secret="$(nomad var get -item stripe_webhook_secret tcg-store/medusa-secrets 2>/dev/null || true)"
-    existing_stripe_publishable_key="$(nomad var get -item stripe_publishable_key tcg-store/medusa-secrets 2>/dev/null || true)"
-    existing_contact_smtp_host="$(nomad var get -item contact_smtp_host tcg-store/medusa-secrets 2>/dev/null || true)"
-    existing_contact_smtp_port="$(nomad var get -item contact_smtp_port tcg-store/medusa-secrets 2>/dev/null || true)"
-    existing_contact_smtp_secure="$(nomad var get -item contact_smtp_secure tcg-store/medusa-secrets 2>/dev/null || true)"
-    existing_contact_smtp_user="$(nomad var get -item contact_smtp_user tcg-store/medusa-secrets 2>/dev/null || true)"
-    existing_contact_smtp_password="$(nomad var get -item contact_smtp_password tcg-store/medusa-secrets 2>/dev/null || true)"
-    existing_contact_from_email="$(nomad var get -item contact_from_email tcg-store/medusa-secrets 2>/dev/null || true)"
-    existing_contact_to_email="$(nomad var get -item contact_to_email tcg-store/medusa-secrets 2>/dev/null || true)"
-    existing_transactional_smtp_host="$(nomad var get -item transactional_smtp_host tcg-store/medusa-secrets 2>/dev/null || true)"
-    existing_transactional_smtp_port="$(nomad var get -item transactional_smtp_port tcg-store/medusa-secrets 2>/dev/null || true)"
-    existing_transactional_smtp_secure="$(nomad var get -item transactional_smtp_secure tcg-store/medusa-secrets 2>/dev/null || true)"
-    existing_transactional_smtp_user="$(nomad var get -item transactional_smtp_user tcg-store/medusa-secrets 2>/dev/null || true)"
-    existing_transactional_smtp_password="$(nomad var get -item transactional_smtp_password tcg-store/medusa-secrets 2>/dev/null || true)"
-    existing_transactional_from_email="$(nomad var get -item transactional_from_email tcg-store/medusa-secrets 2>/dev/null || true)"
+    existing_stripe_api_key="$(nomad var get -item stripe_api_key "$VAR_PATH/secrets" 2>/dev/null || true)"
+    existing_stripe_webhook_secret="$(nomad var get -item stripe_webhook_secret "$VAR_PATH/secrets" 2>/dev/null || true)"
+    existing_stripe_publishable_key="$(nomad var get -item stripe_publishable_key "$VAR_PATH/secrets" 2>/dev/null || true)"
+    existing_contact_smtp_host="$(nomad var get -item contact_smtp_host "$VAR_PATH/secrets" 2>/dev/null || true)"
+    existing_contact_smtp_port="$(nomad var get -item contact_smtp_port "$VAR_PATH/secrets" 2>/dev/null || true)"
+    existing_contact_smtp_secure="$(nomad var get -item contact_smtp_secure "$VAR_PATH/secrets" 2>/dev/null || true)"
+    existing_contact_smtp_user="$(nomad var get -item contact_smtp_user "$VAR_PATH/secrets" 2>/dev/null || true)"
+    existing_contact_smtp_password="$(nomad var get -item contact_smtp_password "$VAR_PATH/secrets" 2>/dev/null || true)"
+    existing_contact_from_email="$(nomad var get -item contact_from_email "$VAR_PATH/secrets" 2>/dev/null || true)"
+    existing_contact_to_email="$(nomad var get -item contact_to_email "$VAR_PATH/secrets" 2>/dev/null || true)"
+    existing_transactional_smtp_host="$(nomad var get -item transactional_smtp_host "$VAR_PATH/secrets" 2>/dev/null || true)"
+    existing_transactional_smtp_port="$(nomad var get -item transactional_smtp_port "$VAR_PATH/secrets" 2>/dev/null || true)"
+    existing_transactional_smtp_secure="$(nomad var get -item transactional_smtp_secure "$VAR_PATH/secrets" 2>/dev/null || true)"
+    existing_transactional_smtp_user="$(nomad var get -item transactional_smtp_user "$VAR_PATH/secrets" 2>/dev/null || true)"
+    existing_transactional_smtp_password="$(nomad var get -item transactional_smtp_password "$VAR_PATH/secrets" 2>/dev/null || true)"
+    existing_transactional_from_email="$(nomad var get -item transactional_from_email "$VAR_PATH/secrets" 2>/dev/null || true)"
     stripe_api_key="${STRIPE_API_KEY:-$existing_stripe_api_key}"
     stripe_webhook_secret="${STRIPE_WEBHOOK_SECRET:-$existing_stripe_webhook_secret}"
     stripe_publishable_key="${NEXT_PUBLIC_STRIPE_KEY:-$existing_stripe_publishable_key}"
@@ -236,59 +257,56 @@ with open(secrets_path, "w", encoding="utf-8") as secrets_file:
     )
 PY
 
-    nomad var put -force tcg-store/medusa-database @"$TEMP_DB"
-    nomad var put -force tcg-store/medusa-secrets @"$TEMP_SECRETS"
+    nomad var put -force "$VAR_PATH/database" @"$TEMP_DB"
+    nomad var put -force "$VAR_PATH/secrets" @"$TEMP_SECRETS"
 else
-    nomad var get tcg-store/medusa-database >/dev/null || \
-        error "Missing $SECRETS_FILE and Nomad variable tcg-store/medusa-database"
-    nomad var get tcg-store/medusa-secrets >/dev/null || \
-        error "Missing $SECRETS_FILE and Nomad variable tcg-store/medusa-secrets"
+    nomad var get "$VAR_PATH/database" >/dev/null || \
+        error "Missing $SECRETS_FILE and Nomad variable $VAR_PATH/database"
+    nomad var get "$VAR_PATH/secrets" >/dev/null || \
+        error "Missing $SECRETS_FILE and Nomad variable $VAR_PATH/secrets"
 fi
+
+# Retire unqualified jobs before moving their mounted production state.
+nomad job stop -purge tcg-medusa >/dev/null 2>&1 || true
+nomad job stop -purge tcg-medusa-redis >/dev/null 2>&1 || true
+for directory in redis static backups; do
+    if [ -d "/opt/tcg-medusa/$directory" ] && [ ! -e "$STATE_PATH/$directory" ]; then
+        mkdir -p "$STATE_PATH"
+        mv "/opt/tcg-medusa/$directory" "$STATE_PATH/$directory"
+    fi
+done
 
 mkdir -p \
     "$NOMAD_JOBS_DIR" \
-    /opt/tcg-medusa/redis \
-    /opt/tcg-medusa/static \
-    /opt/tcg-medusa/backups/static \
-    /opt/tcg-medusa/backups/manifests
-
-nomad job stop -purge tcg-medusa-redis >/dev/null 2>&1 || true
-
-if [ "$DEPLOYMENT_ENVIRONMENT" = "production" ]; then
-    redirect_filter=(-e "/PRODUCTION_REDIRECT_\(START\|END\)/d")
-else
-    redirect_filter=(-e "/PRODUCTION_REDIRECT_START/,/PRODUCTION_REDIRECT_END/d")
-fi
+    "$STATE_PATH/redis" \
+    "$STATE_PATH/static" \
+    "$STATE_PATH/catalog-intake" \
+    "$STATE_PATH/backups/static" \
+    "$STATE_PATH/backups/manifests"
 
 sed \
     -e "s|BACKEND_IMAGE_PLACEHOLDER|$BACKEND_IMAGE|g" \
     -e "s|STOREFRONT_IMAGE_PLACEHOLDER|$STOREFRONT_IMAGE|g" \
     -e "s|DEPLOY_VERSION_PLACEHOLDER|$DEPLOY_VERSION|g" \
     -e "s|DEPLOYMENT_ENVIRONMENT_PLACEHOLDER|$DEPLOYMENT_ENVIRONMENT|g" \
+    -e "s|TCG_MEDUSA_VAR_PATH_PLACEHOLDER|$VAR_PATH|g" \
+    -e "s|TCG_MEDUSA_STATE_PATH_PLACEHOLDER|$STATE_PATH|g" \
     -e "s|STOREFRONT_HOST_PLACEHOLDER|$STOREFRONT_HOST|g" \
     -e "s|STOREFRONT_REDIRECT_HOST_PLACEHOLDER|$STOREFRONT_REDIRECT_HOST|g" \
     -e "s|API_HOST_PLACEHOLDER|$API_HOST|g" \
-    "${redirect_filter[@]}" \
+    -e "/PRODUCTION_REDIRECT_\(START\|END\)/d" \
     "infra/jobs/tcg-medusa.nomad.template" > \
-    "$NOMAD_JOBS_DIR/tcg-medusa.nomad"
+    "$NOMAD_JOBS_DIR/$SERVICE_JOB.nomad"
 
-nomad job run "$NOMAD_JOBS_DIR/tcg-medusa.nomad"
+nomad job run "$NOMAD_JOBS_DIR/$SERVICE_JOB.nomad"
 
-BACKEND_IMAGE="$BACKEND_IMAGE" \
-API_HOST="$API_HOST" \
-STOREFRONT_HOST="$STOREFRONT_HOST" \
-    bash scripts/run-tcg-medusa-config.sh
-wait_for_batch_job tcg-medusa-config
-
-if [ "$RUN_CATALOG" = "true" ]; then
-    BACKEND_IMAGE="$BACKEND_IMAGE" \
-    API_HOST="$API_HOST" \
-    STOREFRONT_HOST="$STOREFRONT_HOST" \
-    DEPLOYMENT_ENVIRONMENT="$DEPLOYMENT_ENVIRONMENT" \
-        bash scripts/run-tcg-medusa-catalog.sh
-    wait_for_batch_job tcg-medusa-catalog
+if [ "$RUN_CONFIG" = "true" ]; then
+    BACKEND_IMAGE="$BACKEND_IMAGE" API_HOST="$API_HOST" STOREFRONT_HOST="$STOREFRONT_HOST" \
+        DEPLOYMENT_ENVIRONMENT="$DEPLOYMENT_ENVIRONMENT" bash scripts/run-tcg-medusa-config.sh
 else
-    echo "Catalog synchronization skipped for $DEPLOYMENT_ENVIRONMENT"
+    echo "Store configuration skipped for $DEPLOYMENT_ENVIRONMENT"
 fi
 
-echo "TCG Medusa service, config, and catalog jobs submitted. Check status with: nomad job status tcg-medusa"
+echo "Catalog synchronization disabled for production"
+
+echo "TCG Medusa $DEPLOYMENT_ENVIRONMENT deployment complete. Check status with: nomad job status $SERVICE_JOB"

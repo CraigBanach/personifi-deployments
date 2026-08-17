@@ -1,4 +1,4 @@
-job "tcg-medusa-config" {
+job "tcg-medusa-DEPLOYMENT_ENVIRONMENT_PLACEHOLDER-config" {
   datacenters = ["dc1"]
   type        = "batch"
 
@@ -13,12 +13,12 @@ job "tcg-medusa-config" {
 
       template {
         data = <<EOF
-DATABASE_URL="{{ with nomadVar "tcg-store/medusa-database" }}{{ .database_url }}{{ end }}"
-JWT_SECRET="{{ with nomadVar "tcg-store/medusa-secrets" }}{{ .jwt_secret }}{{ end }}"
-COOKIE_SECRET="{{ with nomadVar "tcg-store/medusa-secrets" }}{{ .cookie_secret }}{{ end }}"
-STRIPE_API_KEY="{{ with nomadVar "tcg-store/medusa-secrets" }}{{ if .stripe_api_key }}{{ .stripe_api_key }}{{ end }}{{ end }}"
-STRIPE_WEBHOOK_SECRET="{{ with nomadVar "tcg-store/medusa-secrets" }}{{ if .stripe_webhook_secret }}{{ .stripe_webhook_secret }}{{ end }}{{ end }}"
-NEXT_PUBLIC_STRIPE_KEY="{{ with nomadVar "tcg-store/medusa-secrets" }}{{ if .stripe_publishable_key }}{{ .stripe_publishable_key }}{{ end }}{{ end }}"
+DATABASE_URL="{{ with nomadVar "TCG_MEDUSA_VAR_PATH_PLACEHOLDER/database" }}{{ .database_url }}{{ end }}"
+JWT_SECRET="{{ with nomadVar "TCG_MEDUSA_VAR_PATH_PLACEHOLDER/secrets" }}{{ .jwt_secret }}{{ end }}"
+COOKIE_SECRET="{{ with nomadVar "TCG_MEDUSA_VAR_PATH_PLACEHOLDER/secrets" }}{{ .cookie_secret }}{{ end }}"
+STRIPE_API_KEY="{{ with nomadVar "TCG_MEDUSA_VAR_PATH_PLACEHOLDER/secrets" }}{{ if .stripe_api_key }}{{ .stripe_api_key }}{{ end }}{{ end }}"
+STRIPE_WEBHOOK_SECRET="{{ with nomadVar "TCG_MEDUSA_VAR_PATH_PLACEHOLDER/secrets" }}{{ if .stripe_webhook_secret }}{{ .stripe_webhook_secret }}{{ end }}{{ end }}"
+NEXT_PUBLIC_STRIPE_KEY="{{ with nomadVar "TCG_MEDUSA_VAR_PATH_PLACEHOLDER/secrets" }}{{ if .stripe_publishable_key }}{{ .stripe_publishable_key }}{{ end }}{{ end }}"
 EOF
         destination = "local/backend-secrets.env"
         env         = true
@@ -46,6 +46,8 @@ EOF
 
       env {
         NODE_ENV = "production"
+        DEPLOYMENT_ENV = "DEPLOYMENT_ENVIRONMENT_PLACEHOLDER"
+        ALLOW_PRODUCTION_DATA_MUTATION = "true"
         CI       = "true"
 
         STORE_CORS = "https://STOREFRONT_HOST_PLACEHOLDER"

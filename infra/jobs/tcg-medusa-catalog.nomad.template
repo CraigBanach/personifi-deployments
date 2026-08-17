@@ -1,4 +1,4 @@
-job "tcg-medusa-catalog" {
+job "tcg-medusa-DEPLOYMENT_ENVIRONMENT_PLACEHOLDER-catalog" {
   datacenters = ["dc1"]
   type        = "batch"
 
@@ -13,9 +13,9 @@ job "tcg-medusa-catalog" {
 
       template {
         data = <<EOF
-DATABASE_URL="{{ with nomadVar "tcg-store/medusa-database" }}{{ .database_url }}{{ end }}"
-JWT_SECRET="{{ with nomadVar "tcg-store/medusa-secrets" }}{{ .jwt_secret }}{{ end }}"
-COOKIE_SECRET="{{ with nomadVar "tcg-store/medusa-secrets" }}{{ .cookie_secret }}{{ end }}"
+DATABASE_URL="{{ with nomadVar "TCG_MEDUSA_VAR_PATH_PLACEHOLDER/database" }}{{ .database_url }}{{ end }}"
+JWT_SECRET="{{ with nomadVar "TCG_MEDUSA_VAR_PATH_PLACEHOLDER/secrets" }}{{ .jwt_secret }}{{ end }}"
+COOKIE_SECRET="{{ with nomadVar "TCG_MEDUSA_VAR_PATH_PLACEHOLDER/secrets" }}{{ .cookie_secret }}{{ end }}"
 EOF
         destination = "local/backend-secrets.env"
         env         = true
@@ -43,6 +43,7 @@ EOF
 
       env {
         NODE_ENV = "production"
+        DEPLOYMENT_ENV = "DEPLOYMENT_ENVIRONMENT_PLACEHOLDER"
         CI       = "true"
 
         STORE_CORS = "https://STOREFRONT_HOST_PLACEHOLDER"

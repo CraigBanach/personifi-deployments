@@ -1,4 +1,4 @@
-job "tcg-medusa" {
+job "tcg-medusa-DEPLOYMENT_ENVIRONMENT_PLACEHOLDER" {
   datacenters = ["dc1"]
   type        = "service"
 
@@ -20,19 +20,19 @@ job "tcg-medusa" {
 
       template {
         data = <<EOF
-DATABASE_URL="{{ with nomadVar "tcg-store/medusa-database" }}{{ .database_url }}{{ end }}"
+DATABASE_URL="{{ with nomadVar "TCG_MEDUSA_VAR_PATH_PLACEHOLDER/database" }}{{ .database_url }}{{ end }}"
 REDIS_URL="redis://{{ env "NOMAD_IP_redis" }}:{{ env "NOMAD_HOST_PORT_redis" }}"
-JWT_SECRET="{{ with nomadVar "tcg-store/medusa-secrets" }}{{ .jwt_secret }}{{ end }}"
-COOKIE_SECRET="{{ with nomadVar "tcg-store/medusa-secrets" }}{{ .cookie_secret }}{{ end }}"
-STRIPE_API_KEY="{{ with nomadVar "tcg-store/medusa-secrets" }}{{ if .stripe_api_key }}{{ .stripe_api_key }}{{ end }}{{ end }}"
-STRIPE_WEBHOOK_SECRET="{{ with nomadVar "tcg-store/medusa-secrets" }}{{ if .stripe_webhook_secret }}{{ .stripe_webhook_secret }}{{ end }}{{ end }}"
-NEXT_PUBLIC_STRIPE_KEY="{{ with nomadVar "tcg-store/medusa-secrets" }}{{ if .stripe_publishable_key }}{{ .stripe_publishable_key }}{{ end }}{{ end }}"
-TRANSACTIONAL_SMTP_HOST="{{ with nomadVar "tcg-store/medusa-secrets" }}{{ if index . "transactional_smtp_host" }}{{ index . "transactional_smtp_host" }}{{ end }}{{ end }}"
-TRANSACTIONAL_SMTP_PORT="{{ with nomadVar "tcg-store/medusa-secrets" }}{{ if index . "transactional_smtp_port" }}{{ index . "transactional_smtp_port" }}{{ end }}{{ end }}"
-TRANSACTIONAL_SMTP_SECURE="{{ with nomadVar "tcg-store/medusa-secrets" }}{{ if index . "transactional_smtp_secure" }}{{ index . "transactional_smtp_secure" }}{{ end }}{{ end }}"
-TRANSACTIONAL_SMTP_USER="{{ with nomadVar "tcg-store/medusa-secrets" }}{{ if index . "transactional_smtp_user" }}{{ index . "transactional_smtp_user" }}{{ end }}{{ end }}"
-TRANSACTIONAL_SMTP_PASSWORD="{{ with nomadVar "tcg-store/medusa-secrets" }}{{ if index . "transactional_smtp_password" }}{{ index . "transactional_smtp_password" }}{{ end }}{{ end }}"
-TRANSACTIONAL_FROM_EMAIL="{{ with nomadVar "tcg-store/medusa-secrets" }}{{ if index . "transactional_from_email" }}{{ index . "transactional_from_email" }}{{ end }}{{ end }}"
+JWT_SECRET="{{ with nomadVar "TCG_MEDUSA_VAR_PATH_PLACEHOLDER/secrets" }}{{ .jwt_secret }}{{ end }}"
+COOKIE_SECRET="{{ with nomadVar "TCG_MEDUSA_VAR_PATH_PLACEHOLDER/secrets" }}{{ .cookie_secret }}{{ end }}"
+STRIPE_API_KEY="{{ with nomadVar "TCG_MEDUSA_VAR_PATH_PLACEHOLDER/secrets" }}{{ if .stripe_api_key }}{{ .stripe_api_key }}{{ end }}{{ end }}"
+STRIPE_WEBHOOK_SECRET="{{ with nomadVar "TCG_MEDUSA_VAR_PATH_PLACEHOLDER/secrets" }}{{ if .stripe_webhook_secret }}{{ .stripe_webhook_secret }}{{ end }}{{ end }}"
+NEXT_PUBLIC_STRIPE_KEY="{{ with nomadVar "TCG_MEDUSA_VAR_PATH_PLACEHOLDER/secrets" }}{{ if .stripe_publishable_key }}{{ .stripe_publishable_key }}{{ end }}{{ end }}"
+TRANSACTIONAL_SMTP_HOST="{{ with nomadVar "TCG_MEDUSA_VAR_PATH_PLACEHOLDER/secrets" }}{{ if index . "transactional_smtp_host" }}{{ index . "transactional_smtp_host" }}{{ end }}{{ end }}"
+TRANSACTIONAL_SMTP_PORT="{{ with nomadVar "TCG_MEDUSA_VAR_PATH_PLACEHOLDER/secrets" }}{{ if index . "transactional_smtp_port" }}{{ index . "transactional_smtp_port" }}{{ end }}{{ end }}"
+TRANSACTIONAL_SMTP_SECURE="{{ with nomadVar "TCG_MEDUSA_VAR_PATH_PLACEHOLDER/secrets" }}{{ if index . "transactional_smtp_secure" }}{{ index . "transactional_smtp_secure" }}{{ end }}{{ end }}"
+TRANSACTIONAL_SMTP_USER="{{ with nomadVar "TCG_MEDUSA_VAR_PATH_PLACEHOLDER/secrets" }}{{ if index . "transactional_smtp_user" }}{{ index . "transactional_smtp_user" }}{{ end }}{{ end }}"
+TRANSACTIONAL_SMTP_PASSWORD="{{ with nomadVar "TCG_MEDUSA_VAR_PATH_PLACEHOLDER/secrets" }}{{ if index . "transactional_smtp_password" }}{{ index . "transactional_smtp_password" }}{{ end }}{{ end }}"
+TRANSACTIONAL_FROM_EMAIL="{{ with nomadVar "TCG_MEDUSA_VAR_PATH_PLACEHOLDER/secrets" }}{{ if index . "transactional_from_email" }}{{ index . "transactional_from_email" }}{{ end }}{{ end }}"
 EOF
         destination = "local/backend-secrets.env"
         env         = true
@@ -51,21 +51,21 @@ EOF
         image = "BACKEND_IMAGE_PLACEHOLDER"
         ports = ["backend"]
         volumes = [
-          "/opt/tcg-medusa/static:/app/apps/backend/.medusa/server/static"
+          "TCG_MEDUSA_STATE_PATH_PLACEHOLDER/static:/app/apps/backend/.medusa/server/static"
         ]
 
         labels = {
           "traefik.enable" = "true"
 
-          "traefik.http.routers.tcg-medusa-api.rule" = "Host(`API_HOST_PLACEHOLDER`)"
-          "traefik.http.routers.tcg-medusa-api.entrypoints" = "web"
+          "traefik.http.routers.tcg-medusa-api-DEPLOYMENT_ENVIRONMENT_PLACEHOLDER.rule" = "Host(`API_HOST_PLACEHOLDER`)"
+          "traefik.http.routers.tcg-medusa-api-DEPLOYMENT_ENVIRONMENT_PLACEHOLDER.entrypoints" = "web"
 
-          "traefik.http.routers.tcg-medusa-api-secure.rule" = "Host(`API_HOST_PLACEHOLDER`)"
-          "traefik.http.routers.tcg-medusa-api-secure.entrypoints" = "websecure"
-          "traefik.http.routers.tcg-medusa-api-secure.tls" = "true"
-          "traefik.http.routers.tcg-medusa-api-secure.tls.certresolver" = "letsencrypt"
+          "traefik.http.routers.tcg-medusa-api-secure-DEPLOYMENT_ENVIRONMENT_PLACEHOLDER.rule" = "Host(`API_HOST_PLACEHOLDER`)"
+          "traefik.http.routers.tcg-medusa-api-secure-DEPLOYMENT_ENVIRONMENT_PLACEHOLDER.entrypoints" = "websecure"
+          "traefik.http.routers.tcg-medusa-api-secure-DEPLOYMENT_ENVIRONMENT_PLACEHOLDER.tls" = "true"
+          "traefik.http.routers.tcg-medusa-api-secure-DEPLOYMENT_ENVIRONMENT_PLACEHOLDER.tls.certresolver" = "letsencrypt"
 
-          "traefik.http.services.tcg-medusa-api.loadbalancer.server.port" = "9000"
+          "traefik.http.services.tcg-medusa-api-DEPLOYMENT_ENVIRONMENT_PLACEHOLDER.loadbalancer.server.port" = "9000"
         }
 
         auth {
@@ -102,7 +102,7 @@ EOF
         ports = ["redis"]
         args  = ["redis-server", "--appendonly", "yes"]
         volumes = [
-          "/opt/tcg-medusa/redis:/data"
+          "TCG_MEDUSA_STATE_PATH_PLACEHOLDER/redis:/data"
         ]
       }
 
@@ -119,16 +119,16 @@ EOF
         data = <<EOF
 DOCKER_USERNAME="{{ with nomadVar "personifi/ghcr" }}{{ .username }}{{ end }}"
 DOCKER_PASSWORD="{{ with nomadVar "personifi/ghcr" }}{{ .password }}{{ end }}"
-MEDUSA_PUBLISHABLE_KEY="{{ with nomadVar "tcg-store/medusa-secrets" }}{{ .publishable_key }}{{ end }}"
-NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY="{{ with nomadVar "tcg-store/medusa-secrets" }}{{ .publishable_key }}{{ end }}"
-NEXT_PUBLIC_STRIPE_KEY="{{ with nomadVar "tcg-store/medusa-secrets" }}{{ .stripe_publishable_key }}{{ end }}"
-SMTP_HOST="{{ with nomadVar "tcg-store/medusa-secrets" }}{{ if index . "contact_smtp_host" }}{{ index . "contact_smtp_host" }}{{ end }}{{ end }}"
-SMTP_PORT="{{ with nomadVar "tcg-store/medusa-secrets" }}{{ if index . "contact_smtp_port" }}{{ index . "contact_smtp_port" }}{{ end }}{{ end }}"
-SMTP_SECURE="{{ with nomadVar "tcg-store/medusa-secrets" }}{{ if index . "contact_smtp_secure" }}{{ index . "contact_smtp_secure" }}{{ end }}{{ end }}"
-SMTP_USER="{{ with nomadVar "tcg-store/medusa-secrets" }}{{ if index . "contact_smtp_user" }}{{ index . "contact_smtp_user" }}{{ end }}{{ end }}"
-SMTP_PASSWORD="{{ with nomadVar "tcg-store/medusa-secrets" }}{{ if index . "contact_smtp_password" }}{{ index . "contact_smtp_password" }}{{ end }}{{ end }}"
-CONTACT_FROM_EMAIL="{{ with nomadVar "tcg-store/medusa-secrets" }}{{ if index . "contact_from_email" }}{{ index . "contact_from_email" }}{{ end }}{{ end }}"
-CONTACT_TO_EMAIL="{{ with nomadVar "tcg-store/medusa-secrets" }}{{ if index . "contact_to_email" }}{{ index . "contact_to_email" }}{{ end }}{{ end }}"
+MEDUSA_PUBLISHABLE_KEY="{{ with nomadVar "TCG_MEDUSA_VAR_PATH_PLACEHOLDER/secrets" }}{{ .publishable_key }}{{ end }}"
+NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY="{{ with nomadVar "TCG_MEDUSA_VAR_PATH_PLACEHOLDER/secrets" }}{{ .publishable_key }}{{ end }}"
+NEXT_PUBLIC_STRIPE_KEY="{{ with nomadVar "TCG_MEDUSA_VAR_PATH_PLACEHOLDER/secrets" }}{{ .stripe_publishable_key }}{{ end }}"
+SMTP_HOST="{{ with nomadVar "TCG_MEDUSA_VAR_PATH_PLACEHOLDER/secrets" }}{{ if index . "contact_smtp_host" }}{{ index . "contact_smtp_host" }}{{ end }}{{ end }}"
+SMTP_PORT="{{ with nomadVar "TCG_MEDUSA_VAR_PATH_PLACEHOLDER/secrets" }}{{ if index . "contact_smtp_port" }}{{ index . "contact_smtp_port" }}{{ end }}{{ end }}"
+SMTP_SECURE="{{ with nomadVar "TCG_MEDUSA_VAR_PATH_PLACEHOLDER/secrets" }}{{ if index . "contact_smtp_secure" }}{{ index . "contact_smtp_secure" }}{{ end }}{{ end }}"
+SMTP_USER="{{ with nomadVar "TCG_MEDUSA_VAR_PATH_PLACEHOLDER/secrets" }}{{ if index . "contact_smtp_user" }}{{ index . "contact_smtp_user" }}{{ end }}{{ end }}"
+SMTP_PASSWORD="{{ with nomadVar "TCG_MEDUSA_VAR_PATH_PLACEHOLDER/secrets" }}{{ if index . "contact_smtp_password" }}{{ index . "contact_smtp_password" }}{{ end }}{{ end }}"
+CONTACT_FROM_EMAIL="{{ with nomadVar "TCG_MEDUSA_VAR_PATH_PLACEHOLDER/secrets" }}{{ if index . "contact_from_email" }}{{ index . "contact_from_email" }}{{ end }}{{ end }}"
+CONTACT_TO_EMAIL="{{ with nomadVar "TCG_MEDUSA_VAR_PATH_PLACEHOLDER/secrets" }}{{ if index . "contact_to_email" }}{{ index . "contact_to_email" }}{{ end }}{{ end }}"
 EOF
         destination = "local/storefront-secrets.env"
         env         = true
@@ -141,31 +141,31 @@ EOF
         labels = {
           "traefik.enable" = "true"
 
-          "traefik.http.routers.tcg-medusa-storefront.rule" = "Host(`STOREFRONT_HOST_PLACEHOLDER`)"
-          "traefik.http.routers.tcg-medusa-storefront.entrypoints" = "web"
+          "traefik.http.routers.tcg-medusa-storefront-DEPLOYMENT_ENVIRONMENT_PLACEHOLDER.rule" = "Host(`STOREFRONT_HOST_PLACEHOLDER`)"
+          "traefik.http.routers.tcg-medusa-storefront-DEPLOYMENT_ENVIRONMENT_PLACEHOLDER.entrypoints" = "web"
 
-          "traefik.http.routers.tcg-medusa-storefront-secure.rule" = "Host(`STOREFRONT_HOST_PLACEHOLDER`)"
-          "traefik.http.routers.tcg-medusa-storefront-secure.entrypoints" = "websecure"
-          "traefik.http.routers.tcg-medusa-storefront-secure.tls" = "true"
-          "traefik.http.routers.tcg-medusa-storefront-secure.tls.certresolver" = "letsencrypt"
+          "traefik.http.routers.tcg-medusa-storefront-secure-DEPLOYMENT_ENVIRONMENT_PLACEHOLDER.rule" = "Host(`STOREFRONT_HOST_PLACEHOLDER`)"
+          "traefik.http.routers.tcg-medusa-storefront-secure-DEPLOYMENT_ENVIRONMENT_PLACEHOLDER.entrypoints" = "websecure"
+          "traefik.http.routers.tcg-medusa-storefront-secure-DEPLOYMENT_ENVIRONMENT_PLACEHOLDER.tls" = "true"
+          "traefik.http.routers.tcg-medusa-storefront-secure-DEPLOYMENT_ENVIRONMENT_PLACEHOLDER.tls.certresolver" = "letsencrypt"
 
           # PRODUCTION_REDIRECT_START
-          "traefik.http.routers.tcg-medusa-storefront-www.rule" = "Host(`STOREFRONT_REDIRECT_HOST_PLACEHOLDER`)"
-          "traefik.http.routers.tcg-medusa-storefront-www.entrypoints" = "web"
-          "traefik.http.routers.tcg-medusa-storefront-www.middlewares" = "tcg-medusa-storefront-www-redirect"
+          "traefik.http.routers.tcg-medusa-storefront-www-DEPLOYMENT_ENVIRONMENT_PLACEHOLDER.rule" = "Host(`STOREFRONT_REDIRECT_HOST_PLACEHOLDER`)"
+          "traefik.http.routers.tcg-medusa-storefront-www-DEPLOYMENT_ENVIRONMENT_PLACEHOLDER.entrypoints" = "web"
+          "traefik.http.routers.tcg-medusa-storefront-www-DEPLOYMENT_ENVIRONMENT_PLACEHOLDER.middlewares" = "tcg-medusa-storefront-www-redirect-DEPLOYMENT_ENVIRONMENT_PLACEHOLDER"
 
-          "traefik.http.routers.tcg-medusa-storefront-www-secure.rule" = "Host(`STOREFRONT_REDIRECT_HOST_PLACEHOLDER`)"
-          "traefik.http.routers.tcg-medusa-storefront-www-secure.entrypoints" = "websecure"
-          "traefik.http.routers.tcg-medusa-storefront-www-secure.tls" = "true"
-          "traefik.http.routers.tcg-medusa-storefront-www-secure.tls.certresolver" = "letsencrypt"
-          "traefik.http.routers.tcg-medusa-storefront-www-secure.middlewares" = "tcg-medusa-storefront-www-redirect"
+          "traefik.http.routers.tcg-medusa-storefront-www-secure-DEPLOYMENT_ENVIRONMENT_PLACEHOLDER.rule" = "Host(`STOREFRONT_REDIRECT_HOST_PLACEHOLDER`)"
+          "traefik.http.routers.tcg-medusa-storefront-www-secure-DEPLOYMENT_ENVIRONMENT_PLACEHOLDER.entrypoints" = "websecure"
+          "traefik.http.routers.tcg-medusa-storefront-www-secure-DEPLOYMENT_ENVIRONMENT_PLACEHOLDER.tls" = "true"
+          "traefik.http.routers.tcg-medusa-storefront-www-secure-DEPLOYMENT_ENVIRONMENT_PLACEHOLDER.tls.certresolver" = "letsencrypt"
+          "traefik.http.routers.tcg-medusa-storefront-www-secure-DEPLOYMENT_ENVIRONMENT_PLACEHOLDER.middlewares" = "tcg-medusa-storefront-www-redirect-DEPLOYMENT_ENVIRONMENT_PLACEHOLDER"
 
-          "traefik.http.middlewares.tcg-medusa-storefront-www-redirect.redirectregex.regex" = "^https?://STOREFRONT_REDIRECT_HOST_PLACEHOLDER/(.*)"
-          "traefik.http.middlewares.tcg-medusa-storefront-www-redirect.redirectregex.replacement" = "https://STOREFRONT_HOST_PLACEHOLDER/$1"
-          "traefik.http.middlewares.tcg-medusa-storefront-www-redirect.redirectregex.permanent" = "true"
+          "traefik.http.middlewares.tcg-medusa-storefront-www-redirect-DEPLOYMENT_ENVIRONMENT_PLACEHOLDER.redirectregex.regex" = "^https?://STOREFRONT_REDIRECT_HOST_PLACEHOLDER/(.*)"
+          "traefik.http.middlewares.tcg-medusa-storefront-www-redirect-DEPLOYMENT_ENVIRONMENT_PLACEHOLDER.redirectregex.replacement" = "https://STOREFRONT_HOST_PLACEHOLDER/$1"
+          "traefik.http.middlewares.tcg-medusa-storefront-www-redirect-DEPLOYMENT_ENVIRONMENT_PLACEHOLDER.redirectregex.permanent" = "true"
           # PRODUCTION_REDIRECT_END
 
-          "traefik.http.services.tcg-medusa-storefront.loadbalancer.server.port" = "8000"
+          "traefik.http.services.tcg-medusa-storefront-DEPLOYMENT_ENVIRONMENT_PLACEHOLDER.loadbalancer.server.port" = "8000"
         }
 
         auth {

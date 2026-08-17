@@ -2,7 +2,7 @@
 
 ## Scope
 
-Aiven manages PostgreSQL backups. This backup covers only uploaded Medusa files stored on the VPS at `/opt/tcg-medusa/static` and mounted into the backend container.
+Aiven manages PostgreSQL backups. This backup covers only uploaded Medusa files stored beneath `/opt/tcg-medusa/production/static` and mounted into the production backend container.
 
 The VPS is a single point of failure for these files. Keep an off-site copy in a private Backblaze B2 bucket.
 
@@ -22,7 +22,7 @@ The script:
 - Keeps 14 days locally by default.
 - Copies completed archives and manifests to `RCLONE_REMOTE` when configured.
 
-Local backups are written beneath `/opt/tcg-medusa/backups`.
+Local backups are written beneath `/opt/tcg-medusa/production/backups`.
 
 ## Backblaze B2
 
@@ -61,12 +61,12 @@ journalctl -u tcg-medusa-backup.service --since today
 
 ## Verify A Backup
 
-From `/opt/tcg-medusa/backups`, verify an archive using its matching manifest:
+From `/opt/tcg-medusa/production/backups`, verify an archive using its matching manifest:
 
 ```bash
-cd /opt/tcg-medusa/backups
-sha256sum -c manifests/tcg-medusa-static-TIMESTAMP.sha256
-tar -tzf static/tcg-medusa-static-TIMESTAMP.tar.gz >/dev/null
+cd /opt/tcg-medusa/production/backups
+sha256sum -c manifests/tcg-medusa-production-static-TIMESTAMP.sha256
+tar -tzf static/tcg-medusa-production-static-TIMESTAMP.tar.gz >/dev/null
 ```
 
 Periodically download an archive from B2 and perform a test restore. A backup is not proven until its restore succeeds.
@@ -75,8 +75,8 @@ Periodically download an archive from B2 and perform a test restore. A backup is
 
 Use a maintenance window and retain the current directory until application checks pass.
 
-1. Stop the `tcg-medusa` Nomad job.
-2. Move `/opt/tcg-medusa/static` to a timestamped pre-restore directory.
-3. Extract the selected archive into `/opt/tcg-medusa`.
-4. Redeploy `tcg-medusa` and run the staging smoke test.
+1. Stop the `tcg-medusa-production` Nomad job.
+2. Move `/opt/tcg-medusa/production/static` to a timestamped pre-restore directory.
+3. Extract the selected archive into `/opt/tcg-medusa/production`.
+4. Redeploy `tcg-medusa-production` and run the production smoke test.
 5. Remove the pre-restore directory only after product media, storefront, and admin checks pass.

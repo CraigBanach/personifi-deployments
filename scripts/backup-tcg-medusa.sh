@@ -1,20 +1,25 @@
 #!/bin/bash
 set -euo pipefail
+umask 077
 
-BACKUP_ROOT="${BACKUP_ROOT:-/opt/tcg-medusa/backups}"
-STATIC_ROOT="${STATIC_ROOT:-/opt/tcg-medusa/static}"
+REQUESTED_ENVIRONMENT="${ENVIRONMENT:-production}"
+case "$REQUESTED_ENVIRONMENT" in production) ;; *) echo "This host only backs up production" >&2; exit 1 ;; esac
+ENVIRONMENT=production
+BACKUP_ROOT="${BACKUP_ROOT:-/opt/tcg-medusa/production/backups}"
+STATIC_ROOT="${STATIC_ROOT:-/opt/tcg-medusa/production/static}"
 RETENTION_DAYS="${RETENTION_DAYS:-14}"
 RCLONE_REMOTE="${RCLONE_REMOTE:-}"
 TIMESTAMP="$(date -u +%Y%m%dT%H%M%SZ)"
 STATIC_DIR="$BACKUP_ROOT/static"
 MANIFEST_DIR="$BACKUP_ROOT/manifests"
-STATIC_ARCHIVE="$STATIC_DIR/tcg-medusa-static-$TIMESTAMP.tar.gz"
-MANIFEST="$MANIFEST_DIR/tcg-medusa-static-$TIMESTAMP.sha256"
-TEMP_STATIC_ARCHIVE="$STATIC_ARCHIVE.tmp"
-TEMP_MANIFEST="$MANIFEST.tmp"
+STATIC_ARCHIVE="$STATIC_DIR/tcg-medusa-$ENVIRONMENT-static-$TIMESTAMP.tar.gz"
+MANIFEST="$MANIFEST_DIR/tcg-medusa-$ENVIRONMENT-static-$TIMESTAMP.sha256"
+TEMP_STATIC_ARCHIVE=""
+TEMP_MANIFEST=""
 
 cleanup() {
-    rm -f "$TEMP_STATIC_ARCHIVE" "$TEMP_MANIFEST"
+    [ -z "$TEMP_STATIC_ARCHIVE" ] || rm -f "$TEMP_STATIC_ARCHIVE"
+    [ -z "$TEMP_MANIFEST" ] || rm -f "$TEMP_MANIFEST"
 }
 
 trap cleanup EXIT
@@ -32,6 +37,8 @@ if [ ! -d "$STATIC_ROOT" ]; then
 fi
 
 mkdir -p "$STATIC_DIR" "$MANIFEST_DIR"
+TEMP_STATIC_ARCHIVE="$(mktemp "$STATIC_DIR/.tcg-medusa-backup.XXXXXX")"
+TEMP_MANIFEST="$(mktemp "$MANIFEST_DIR/.tcg-medusa-manifest.XXXXXX")"
 
 tar -czf "$TEMP_STATIC_ARCHIVE" \
     -C "$(dirname "$STATIC_ROOT")" \
@@ -58,8 +65,8 @@ if [ -n "$RCLONE_REMOTE" ]; then
     rclone copy "$MANIFEST" "$RCLONE_REMOTE/manifests"
 fi
 
-find "$STATIC_DIR" -type f -name 'tcg-medusa-static-*.tar.gz' -mtime "+$RETENTION_DAYS" -delete
-find "$MANIFEST_DIR" -type f -name 'tcg-medusa-static-*.sha256' -mtime "+$RETENTION_DAYS" -delete
+find "$STATIC_DIR" -type f -name "tcg-medusa-$ENVIRONMENT-static-*.tar.gz" -mtime "+$RETENTION_DAYS" -delete
+find "$MANIFEST_DIR" -type f -name "tcg-medusa-$ENVIRONMENT-static-*.sha256" -mtime "+$RETENTION_DAYS" -delete
 
 echo "Backup complete: $TIMESTAMP"
 echo "Static media: $STATIC_ARCHIVE"

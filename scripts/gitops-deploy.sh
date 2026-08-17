@@ -8,7 +8,6 @@ DEPLOY_REPO="/opt/personifi-deployments"
 LOG_FILE="/var/log/gitops-deploy.log"
 NOMAD_JOBS_DIR="/opt/nomad/jobs"
 TCG_SECRETS_FILE="$DEPLOY_REPO/.tcg-store.secrets.env"
-TCG_MEDUSA_SECRETS_FILE="$DEPLOY_REPO/.tcg-medusa.secrets.env"
 
 # Colors for output
 RED='\033[0;31m'
@@ -70,7 +69,9 @@ if [ "$LOCAL_COMMIT" != "$REMOTE_COMMIT" ] || [ "$RECONCILE_UPDATED_CHECKOUT" = 
         info "🔄 New deployment detected"
         OLD_COMMIT=$(git rev-parse --short HEAD)
         git reset --hard origin/main
-        git clean -fd -e .secrets.env -e .tcg-store.secrets.env -e .tcg-medusa.secrets.env
+        git clean -fd -e .secrets.env -e .tcg-store.secrets.env \
+            -e .tcg-medusa.secrets.env \
+            -e .tcg-medusa-production.secrets.env
         export GITOPS_RECONCILE_UPDATED_CHECKOUT=true
         export GITOPS_PREVIOUS_COMMIT="$OLD_COMMIT"
         exec "$DEPLOY_REPO/scripts/gitops-deploy.sh"
@@ -88,9 +89,6 @@ if [ "$LOCAL_COMMIT" != "$REMOTE_COMMIT" ] || [ "$RECONCILE_UPDATED_CHECKOUT" = 
         info "  Backend: $BACKEND_IMAGE"
         info "  Frontend: $FRONTEND_IMAGE"
         info "  TCG enabled: ${TCG_ENABLED:-false}"
-        info "  TCG Medusa enabled: ${TCG_MEDUSA_ENABLED:-false}"
-        info "  TCG Medusa environment: ${TCG_MEDUSA_ENVIRONMENT:-unset}"
-        info "  TCG Medusa release: ${TCG_MEDUSA_RELEASE_ID:-unset}"
         info "  Deployed at: $DEPLOYED_AT"
         info "  Source commit: $COMMIT_SHA"
         
@@ -213,29 +211,35 @@ EOD
             info "TCG store deployment disabled"
         fi
 
-        if [ "${TCG_MEDUSA_ENABLED:-false}" = "true" ]; then
-            info "🃏 Deploying TCG Medusa..."
+        TCG_MEDUSA_MANIFEST="$DEPLOY_REPO/environments/tcg-medusa-production.env"
+        if [ ! -f "$TCG_MEDUSA_MANIFEST" ]; then
+            error "TCG Medusa production manifest not found: $TCG_MEDUSA_MANIFEST"
+            exit 1
+        fi
 
-            if [ ! -f "/opt/personifi-deployments/scripts/quick-deploy-tcg-medusa.sh" ]; then
-                error "TCG Medusa deploy script not found"
-                exit 1
+        # Production changes only when its promotion manifest changes. Unrelated
+        # commits in this shared GitOps repository must not restart the store.
+        if git diff --quiet "$OLD_COMMIT" HEAD -- "${TCG_MEDUSA_MANIFEST#$DEPLOY_REPO/}"; then
+            info "TCG Medusa production manifest unchanged; skipping reconciliation"
+        elif ! (
+            set -a
+            # shellcheck disable=SC1090
+            source "$TCG_MEDUSA_MANIFEST"
+            set +a
+
+            info "TCG Medusa production: enabled=${TCG_MEDUSA_ENABLED:-false}, release=${TCG_MEDUSA_RELEASE_ID:-unset}"
+            if [ "${TCG_MEDUSA_ENABLED:-false}" != "true" ]; then
+                info "TCG Medusa production deployment disabled"
+                exit 0
             fi
 
-            if ! BACKEND_IMAGE="${TCG_MEDUSA_BACKEND_IMAGE:-ghcr.io/craigbanach/tcg-store-backend:latest}" \
-                STOREFRONT_IMAGE="${TCG_MEDUSA_STOREFRONT_IMAGE:-ghcr.io/craigbanach/tcg-store-storefront:latest}" \
-                DEPLOYMENT_ENVIRONMENT="${TCG_MEDUSA_ENVIRONMENT:?Set TCG_MEDUSA_ENVIRONMENT}" \
-                STOREFRONT_HOST="${TCG_MEDUSA_STOREFRONT_HOST:?Set TCG_MEDUSA_STOREFRONT_HOST}" \
-                STOREFRONT_REDIRECT_HOST="${TCG_MEDUSA_STOREFRONT_REDIRECT_HOST:?Set TCG_MEDUSA_STOREFRONT_REDIRECT_HOST}" \
-                API_HOST="${TCG_MEDUSA_API_HOST:?Set TCG_MEDUSA_API_HOST}" \
-                RUN_CATALOG="${TCG_MEDUSA_RUN_CATALOG:?Set TCG_MEDUSA_RUN_CATALOG}" \
-                    bash /opt/personifi-deployments/scripts/quick-deploy-tcg-medusa.sh 2>&1 | tee -a "$LOG_FILE"; then
-                error "TCG Medusa deployment failed"
-                exit 1
-            fi
-
-            success "TCG Medusa deployment submitted"
+            DEPLOYMENT_ENVIRONMENT=production \
+                bash "$DEPLOY_REPO/scripts/quick-deploy-tcg-medusa.sh" 2>&1 | tee -a "$LOG_FILE"
+        ); then
+            error "TCG Medusa production deployment failed"
+            exit 1
         else
-            info "TCG Medusa deployment disabled"
+            success "TCG Medusa production reconciliation complete"
         fi
         
         success "🎉 Deployment complete: $DEPLOYED_AT"
@@ -257,6 +261,8 @@ else
 fi
 
 # Clean up old generated nomad files (keep last 5)
-find $NOMAD_JOBS_DIR -name "*.nomad" -not -name "*.template" -type f -printf '%T@ %p\n' | sort -n | head -n -5 | cut -d' ' -f2- | xargs rm -f 2>/dev/null
+find $NOMAD_JOBS_DIR -name "*.nomad" -not -name "*.template" \
+    -not -name "tcg-medusa-production*.nomad" \
+    -type f -printf '%T@ %p\n' | sort -n | head -n -5 | cut -d' ' -f2- | xargs rm -f 2>/dev/null
 
 info "GitOps deployment check complete"

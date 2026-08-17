@@ -9,3 +9,9 @@ deployment.log
 # Temporary files
 *.tmp
 .DS_Store
+
+# Environment-specific TCG Medusa credentials
+.secrets.env
+.tcg-store.secrets.env
+.tcg-medusa.secrets.env
+.tcg-medusa-production.secrets.env
