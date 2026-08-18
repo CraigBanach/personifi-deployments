@@ -4,9 +4,6 @@ job "tcg-medusa-DEPLOYMENT_ENVIRONMENT_PLACEHOLDER" {
 
   group "tcg-medusa" {
     network {
-      port "redis" {
-        to = 6379
-      }
       port "backend" {
         to = 9000
       }
@@ -21,7 +18,7 @@ job "tcg-medusa-DEPLOYMENT_ENVIRONMENT_PLACEHOLDER" {
       template {
         data = <<EOF
 DATABASE_URL="{{ with nomadVar "TCG_MEDUSA_VAR_PATH_PLACEHOLDER/database" }}{{ .database_url }}{{ end }}"
-REDIS_URL="redis://{{ env "NOMAD_IP_redis" }}:{{ env "NOMAD_HOST_PORT_redis" }}"
+REDIS_URL="redis://172.17.0.1:6379"
 JWT_SECRET="{{ with nomadVar "TCG_MEDUSA_VAR_PATH_PLACEHOLDER/secrets" }}{{ .jwt_secret }}{{ end }}"
 COOKIE_SECRET="{{ with nomadVar "TCG_MEDUSA_VAR_PATH_PLACEHOLDER/secrets" }}{{ .cookie_secret }}{{ end }}"
 STRIPE_API_KEY="{{ with nomadVar "TCG_MEDUSA_VAR_PATH_PLACEHOLDER/secrets" }}{{ if .stripe_api_key }}{{ .stripe_api_key }}{{ end }}{{ end }}"
@@ -98,9 +95,9 @@ EOF
       driver = "docker"
 
       config {
-        image = "redis:7-alpine"
-        ports = ["redis"]
-        args  = ["redis-server", "--appendonly", "yes"]
+        image        = "redis:7-alpine"
+        network_mode = "host"
+        args         = ["redis-server", "--appendonly", "yes", "--bind", "127.0.0.1", "172.17.0.1"]
         volumes = [
           "TCG_MEDUSA_STATE_PATH_PLACEHOLDER/redis:/data"
         ]
