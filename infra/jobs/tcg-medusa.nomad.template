@@ -37,6 +37,25 @@ EOF
 
       template {
         data = <<EOF
+MERCHANT_SYNC_ENABLED="{{ with nomadVar "TCG_MEDUSA_VAR_PATH_PLACEHOLDER/merchant" }}{{ if index . "merchant_sync_enabled" }}{{ index . "merchant_sync_enabled" }}{{ end }}{{ end }}"
+MERCHANT_ACCOUNT_ID="{{ with nomadVar "TCG_MEDUSA_VAR_PATH_PLACEHOLDER/merchant" }}{{ if index . "merchant_account_id" }}{{ index . "merchant_account_id" }}{{ end }}{{ end }}"
+MERCHANT_DATA_SOURCE_ID="{{ with nomadVar "TCG_MEDUSA_VAR_PATH_PLACEHOLDER/merchant" }}{{ if index . "merchant_data_source_id" }}{{ index . "merchant_data_source_id" }}{{ end }}{{ end }}"
+MERCHANT_SITE_URL="{{ with nomadVar "TCG_MEDUSA_VAR_PATH_PLACEHOLDER/merchant" }}{{ if index . "merchant_site_url" }}{{ index . "merchant_site_url" }}{{ end }}{{ end }}"
+GOOGLE_APPLICATION_CREDENTIALS="/local/gcs-service-account.json"
+EOF
+        destination = "local/merchant-secrets.env"
+        env         = true
+      }
+
+      template {
+        data = <<EOF
+{{ with nomadVar "TCG_MEDUSA_VAR_PATH_PLACEHOLDER/merchant" }}{{ if index . "google_service_account_json" }}{{ index . "google_service_account_json" }}{{ end }}{{ end }}
+EOF
+        destination = "local/gcs-service-account.json"
+      }
+
+      template {
+        data = <<EOF
 DOCKER_USERNAME="{{ with nomadVar "personifi/ghcr" }}{{ .username }}{{ end }}"
 DOCKER_PASSWORD="{{ with nomadVar "personifi/ghcr" }}{{ .password }}{{ end }}"
 EOF
