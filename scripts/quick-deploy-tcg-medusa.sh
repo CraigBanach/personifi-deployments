@@ -145,6 +145,23 @@ if [ -f "$SECRETS_FILE" ]; then
     transactional_smtp_user="${TRANSACTIONAL_SMTP_USER:-$existing_transactional_smtp_user}"
     transactional_smtp_password="${TRANSACTIONAL_SMTP_PASSWORD:-$existing_transactional_smtp_password}"
     transactional_from_email="${TRANSACTIONAL_FROM_EMAIL:-$existing_transactional_from_email}"
+    ebay_api_base="${EBAY_API_BASE:-}"
+    ebay_marketplace_id="${EBAY_MARKETPLACE_ID:-}"
+    ebay_locale="${EBAY_LOCALE:-}"
+    ebay_currency="${EBAY_CURRENCY:-}"
+    ebay_listing_duration="${EBAY_LISTING_DURATION:-}"
+    ebay_client_id="${EBAY_CLIENT_ID:-}"
+    ebay_client_secret="${EBAY_CLIENT_SECRET:-}"
+    ebay_redirect_uri="${EBAY_REDIRECT_URI:-}"
+    ebay_token_encryption_key="${EBAY_TOKEN_ENCRYPTION_KEY:-}"
+    ebay_merchant_location_key="${EBAY_MERCHANT_LOCATION_KEY:-}"
+    ebay_category_id="${EBAY_CATEGORY_ID:-}"
+    ebay_fulfillment_policy_id="${EBAY_FULFILLMENT_POLICY_ID:-}"
+    ebay_payment_policy_id="${EBAY_PAYMENT_POLICY_ID:-}"
+    ebay_return_policy_id="${EBAY_RETURN_POLICY_ID:-}"
+    ebay_webhook_endpoint="${EBAY_WEBHOOK_ENDPOINT:-}"
+    ebay_webhook_verification_token="${EBAY_WEBHOOK_VERIFICATION_TOKEN:-}"
+    ebay_oauth_scopes="${EBAY_OAUTH_SCOPES:-}"
 
     stripe_value_count=0
     for value in "$stripe_api_key" "$stripe_webhook_secret" "$stripe_publishable_key"; do
@@ -207,6 +224,11 @@ if [ -f "$SECRETS_FILE" ]; then
     export contact_smtp_user contact_smtp_password contact_from_email contact_to_email
     export transactional_smtp_host transactional_smtp_port transactional_smtp_secure
     export transactional_smtp_user transactional_smtp_password transactional_from_email
+    export ebay_api_base ebay_marketplace_id ebay_locale ebay_currency ebay_listing_duration
+    export ebay_client_id ebay_client_secret ebay_redirect_uri ebay_token_encryption_key
+    export ebay_merchant_location_key ebay_category_id ebay_fulfillment_policy_id
+    export ebay_payment_policy_id ebay_return_policy_id ebay_webhook_endpoint
+    export ebay_webhook_verification_token ebay_oauth_scopes
 
     python3 - "$TEMP_DB" "$TEMP_SECRETS" <<'PY'
 import json
@@ -238,11 +260,45 @@ secret_names = (
     "transactional_smtp_user",
     "transactional_smtp_password",
     "transactional_from_email",
+    "ebay_api_base",
+    "ebay_marketplace_id",
+    "ebay_locale",
+    "ebay_currency",
+    "ebay_listing_duration",
+    "ebay_client_id",
+    "ebay_client_secret",
+    "ebay_redirect_uri",
+    "ebay_token_encryption_key",
+    "ebay_merchant_location_key",
+    "ebay_category_id",
+    "ebay_fulfillment_policy_id",
+    "ebay_payment_policy_id",
+    "ebay_return_policy_id",
+    "ebay_webhook_endpoint",
+    "ebay_webhook_verification_token",
+    "ebay_oauth_scopes",
 )
 environment_names = {
     "publishable_key": "NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY",
     "jwt_secret": "JWT_SECRET",
     "cookie_secret": "COOKIE_SECRET",
+    "ebay_api_base": "ebay_api_base",
+    "ebay_marketplace_id": "ebay_marketplace_id",
+    "ebay_locale": "ebay_locale",
+    "ebay_currency": "ebay_currency",
+    "ebay_listing_duration": "ebay_listing_duration",
+    "ebay_client_id": "ebay_client_id",
+    "ebay_client_secret": "ebay_client_secret",
+    "ebay_redirect_uri": "ebay_redirect_uri",
+    "ebay_token_encryption_key": "ebay_token_encryption_key",
+    "ebay_merchant_location_key": "ebay_merchant_location_key",
+    "ebay_category_id": "ebay_category_id",
+    "ebay_fulfillment_policy_id": "ebay_fulfillment_policy_id",
+    "ebay_payment_policy_id": "ebay_payment_policy_id",
+    "ebay_return_policy_id": "ebay_return_policy_id",
+    "ebay_webhook_endpoint": "ebay_webhook_endpoint",
+    "ebay_webhook_verification_token": "ebay_webhook_verification_token",
+    "ebay_oauth_scopes": "ebay_oauth_scopes",
 }
 
 with open(secrets_path, "w", encoding="utf-8") as secrets_file:

@@ -32,6 +32,38 @@ The second command performs the secret and Nomad-variable migration after the ma
 
 `TCG_MEDUSA_RUN_CONFIG` independently controls store configuration. Production requires `TCG_MEDUSA_RUN_CATALOG=false`; catalog synchronization and listing intake are rejected. Backend and storefront images must be digest-pinned, and no image defaults are supplied.
 
+## eBay Runtime Configuration
+
+eBay values are backend runtime secrets, never image build arguments or tracked
+deployment manifest values. Add them to the ignored
+`/opt/personifi-deployments/.tcg-medusa-production.secrets.env` file, then run
+the deployment command below. The script writes them to
+`tcg-store/medusa/production/secrets`, and the backend Nomad task receives them
+through its generated environment file.
+
+```env
+EBAY_API_BASE=https://api.ebay.com
+EBAY_MARKETPLACE_ID=EBAY_GB
+EBAY_LOCALE=en-GB
+EBAY_CURRENCY=GBP
+EBAY_LISTING_DURATION=GTC
+EBAY_CLIENT_ID=
+EBAY_CLIENT_SECRET=
+EBAY_REDIRECT_URI=
+EBAY_TOKEN_ENCRYPTION_KEY=
+EBAY_MERCHANT_LOCATION_KEY=
+EBAY_CATEGORY_ID=183454
+EBAY_FULFILLMENT_POLICY_ID=
+EBAY_PAYMENT_POLICY_ID=
+EBAY_RETURN_POLICY_ID=
+EBAY_WEBHOOK_ENDPOINT=https://api.freesplash.co.uk/ebay/webhook
+EBAY_WEBHOOK_VERIFICATION_TOKEN=
+```
+
+Use production eBay application, policy, and merchant-location values only.
+Register the production RuName with `https://api.freesplash.co.uk/ebay/callback`.
+Do not copy the Sandbox seller token or any Sandbox policy/location IDs.
+
 Run the production deployment manually as `gitops`:
 
 ```bash
