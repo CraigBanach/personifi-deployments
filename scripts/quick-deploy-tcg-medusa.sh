@@ -329,8 +329,9 @@ for directory in redis static backups; do
 done
 
 # Legacy jobs are retired only after state is confirmed in its qualified path.
-nomad job stop -purge tcg-medusa >/dev/null 2>&1 || true
-nomad job stop -purge tcg-medusa-redis >/dev/null 2>&1 || true
+# Do not wait for a retired job's allocations; the production job has a distinct name.
+nomad job stop -purge -detach tcg-medusa >/dev/null 2>&1 || true
+nomad job stop -purge -detach tcg-medusa-redis >/dev/null 2>&1 || true
 
 mkdir -p \
     "$NOMAD_JOBS_DIR" \
