@@ -150,6 +150,8 @@ if [ -f "$SECRETS_FILE" ]; then
     ebay_locale="${EBAY_LOCALE:-}"
     ebay_currency="${EBAY_CURRENCY:-}"
     ebay_listing_duration="${EBAY_LISTING_DURATION:-}"
+    ebay_price_mode="${EBAY_PRICE_MODE:-}"
+    ebay_buyer_protection_fixed="${EBAY_BUYER_PROTECTION_FIXED:-}"
     ebay_client_id="${EBAY_CLIENT_ID:-}"
     ebay_client_secret="${EBAY_CLIENT_SECRET:-}"
     ebay_redirect_uri="${EBAY_REDIRECT_URI:-}"
@@ -224,7 +226,7 @@ if [ -f "$SECRETS_FILE" ]; then
     export contact_smtp_user contact_smtp_password contact_from_email contact_to_email
     export transactional_smtp_host transactional_smtp_port transactional_smtp_secure
     export transactional_smtp_user transactional_smtp_password transactional_from_email
-    export ebay_api_base ebay_marketplace_id ebay_locale ebay_currency ebay_listing_duration
+    export ebay_api_base ebay_marketplace_id ebay_locale ebay_currency ebay_listing_duration ebay_price_mode ebay_buyer_protection_fixed
     export ebay_client_id ebay_client_secret ebay_redirect_uri ebay_token_encryption_key
     export ebay_merchant_location_key ebay_category_id ebay_fulfillment_policy_id
     export ebay_payment_policy_id ebay_return_policy_id ebay_webhook_endpoint
@@ -265,6 +267,8 @@ secret_names = (
     "ebay_locale",
     "ebay_currency",
     "ebay_listing_duration",
+    "ebay_price_mode",
+    "ebay_buyer_protection_fixed",
     "ebay_client_id",
     "ebay_client_secret",
     "ebay_redirect_uri",
@@ -287,6 +291,8 @@ environment_names = {
     "ebay_locale": "ebay_locale",
     "ebay_currency": "ebay_currency",
     "ebay_listing_duration": "ebay_listing_duration",
+    "ebay_price_mode": "ebay_price_mode",
+    "ebay_buyer_protection_fixed": "ebay_buyer_protection_fixed",
     "ebay_client_id": "ebay_client_id",
     "ebay_client_secret": "ebay_client_secret",
     "ebay_redirect_uri": "ebay_redirect_uri",
