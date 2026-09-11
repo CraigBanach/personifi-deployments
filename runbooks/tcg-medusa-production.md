@@ -66,6 +66,15 @@ Use production eBay application, policy, and merchant-location values only.
 Register the production RuName with `https://api.freesplash.co.uk/ebay/callback`.
 Do not copy the Sandbox seller token or any Sandbox policy/location IDs.
 
+For a direct Nomad variable update, use
+`tcg-store/medusa/production/secrets`, not `tcg-store/medusa-secrets`. Nomad
+keys are lower-case: `ebay_dev_id` maps to `EBAY_DEV_ID`, and
+`ebay_webhook_endpoint` maps to `EBAY_WEBHOOK_ENDPOINT` in the backend task.
+
+The VPS service `gitops-deploy.service` runs as `gitops` from `/opt/gitops`
+every two minutes. A production-promotion manifest change re-renders the Nomad
+job and replaces the backend allocation.
+
 Run the production deployment manually as `gitops`:
 
 ```bash
