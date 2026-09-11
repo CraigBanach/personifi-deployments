@@ -156,6 +156,7 @@ if [ -f "$SECRETS_FILE" ]; then
     ebay_client_secret="${EBAY_CLIENT_SECRET:-}"
     ebay_redirect_uri="${EBAY_REDIRECT_URI:-}"
     ebay_token_encryption_key="${EBAY_TOKEN_ENCRYPTION_KEY:-}"
+    ebay_dev_id="${EBAY_DEV_ID:-}"
     ebay_merchant_location_key="${EBAY_MERCHANT_LOCATION_KEY:-}"
     ebay_category_id="${EBAY_CATEGORY_ID:-}"
     ebay_fulfillment_policy_id="${EBAY_FULFILLMENT_POLICY_ID:-}"
@@ -227,7 +228,7 @@ if [ -f "$SECRETS_FILE" ]; then
     export transactional_smtp_host transactional_smtp_port transactional_smtp_secure
     export transactional_smtp_user transactional_smtp_password transactional_from_email
     export ebay_api_base ebay_marketplace_id ebay_locale ebay_currency ebay_listing_duration ebay_price_mode ebay_buyer_protection_fixed
-    export ebay_client_id ebay_client_secret ebay_redirect_uri ebay_token_encryption_key
+    export ebay_client_id ebay_client_secret ebay_redirect_uri ebay_token_encryption_key ebay_dev_id
     export ebay_merchant_location_key ebay_category_id ebay_fulfillment_policy_id
     export ebay_payment_policy_id ebay_return_policy_id ebay_webhook_endpoint
     export ebay_webhook_verification_token ebay_oauth_scopes
@@ -273,6 +274,7 @@ secret_names = (
     "ebay_client_secret",
     "ebay_redirect_uri",
     "ebay_token_encryption_key",
+    "ebay_dev_id",
     "ebay_merchant_location_key",
     "ebay_category_id",
     "ebay_fulfillment_policy_id",
@@ -297,6 +299,7 @@ environment_names = {
     "ebay_client_secret": "ebay_client_secret",
     "ebay_redirect_uri": "ebay_redirect_uri",
     "ebay_token_encryption_key": "ebay_token_encryption_key",
+    "ebay_dev_id": "ebay_dev_id",
     "ebay_merchant_location_key": "ebay_merchant_location_key",
     "ebay_category_id": "ebay_category_id",
     "ebay_fulfillment_policy_id": "ebay_fulfillment_policy_id",

@@ -41,6 +41,7 @@ EBAY_CLIENT_ID="{{ with nomadVar "TCG_MEDUSA_VAR_PATH_PLACEHOLDER/secrets" }}{{ 
 EBAY_CLIENT_SECRET="{{ with nomadVar "TCG_MEDUSA_VAR_PATH_PLACEHOLDER/secrets" }}{{ if index . "ebay_client_secret" }}{{ index . "ebay_client_secret" }}{{ end }}{{ end }}"
 EBAY_REDIRECT_URI="{{ with nomadVar "TCG_MEDUSA_VAR_PATH_PLACEHOLDER/secrets" }}{{ if index . "ebay_redirect_uri" }}{{ index . "ebay_redirect_uri" }}{{ end }}{{ end }}"
 EBAY_TOKEN_ENCRYPTION_KEY="{{ with nomadVar "TCG_MEDUSA_VAR_PATH_PLACEHOLDER/secrets" }}{{ if index . "ebay_token_encryption_key" }}{{ index . "ebay_token_encryption_key" }}{{ end }}{{ end }}"
+EBAY_DEV_ID="{{ with nomadVar "TCG_MEDUSA_VAR_PATH_PLACEHOLDER/secrets" }}{{ if index . "ebay_dev_id" }}{{ index . "ebay_dev_id" }}{{ end }}{{ end }}"
 EBAY_MERCHANT_LOCATION_KEY="{{ with nomadVar "TCG_MEDUSA_VAR_PATH_PLACEHOLDER/secrets" }}{{ if index . "ebay_merchant_location_key" }}{{ index . "ebay_merchant_location_key" }}{{ end }}{{ end }}"
 EBAY_CATEGORY_ID="{{ with nomadVar "TCG_MEDUSA_VAR_PATH_PLACEHOLDER/secrets" }}{{ if index . "ebay_category_id" }}{{ index . "ebay_category_id" }}{{ end }}{{ end }}"
 EBAY_FULFILLMENT_POLICY_ID="{{ with nomadVar "TCG_MEDUSA_VAR_PATH_PLACEHOLDER/secrets" }}{{ if index . "ebay_fulfillment_policy_id" }}{{ index . "ebay_fulfillment_policy_id" }}{{ end }}{{ end }}"
