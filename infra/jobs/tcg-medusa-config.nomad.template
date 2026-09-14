@@ -53,6 +53,7 @@ EOF
         STORE_CORS = "https://STOREFRONT_HOST_PLACEHOLDER"
         ADMIN_CORS = "https://API_HOST_PLACEHOLDER"
         AUTH_CORS  = "https://API_HOST_PLACEHOLDER,https://STOREFRONT_HOST_PLACEHOLDER"
+        MEDUSA_BACKEND_URL = "https://API_HOST_PLACEHOLDER"
       }
 
       resources {
