@@ -71,7 +71,7 @@ EOF
 
       template {
         data = <<EOF
-{{ if nomadVarExists "TCG_MEDUSA_VAR_PATH_PLACEHOLDER/channel-sync" }}{{ with nomadVar "TCG_MEDUSA_VAR_PATH_PLACEHOLDER/channel-sync" }}{{ if index . "channel_sync_ebay_runtime_json" }}{{ index . "channel_sync_ebay_runtime_json" }}{{ else }}{}{{ end }}{{ else }}{}{{ end }}{{ else }}{}{{ end }}
+{{ if nomadVarExists "TCG_MEDUSA_VAR_PATH_PLACEHOLDER/channel-sync" }}{{ with nomadVar "TCG_MEDUSA_VAR_PATH_PLACEHOLDER/channel-sync" }}{{ if index . "channel_sync_ebay_runtime_parts" }}{{ range $path := split "," (index . "channel_sync_ebay_runtime_parts") }}{{ with nomadVar $path }}{{ index . "json_part" }}{{ end }}{{ end }}{{ else if index . "channel_sync_ebay_runtime_json" }}{{ index . "channel_sync_ebay_runtime_json" }}{{ else }}{}{{ end }}{{ else }}{}{{ end }}{{ else }}{}{{ end }}
 EOF
         destination = "secrets/ebay-native-runtime.json"
         perms       = "0600"

@@ -31,10 +31,12 @@ func TestNativeRuntimeTemplates(t *testing.T) {
 		{"absent", false, nil, "disabled", "false", "{}"},
 		{"empty", true, map[string]string{}, "disabled", "false", "{}"},
 		{"staged", true, map[string]string{"channel_sync_ebay_runtime_json": `{"synthetic":true}`}, "disabled", "false", `{"synthetic":true}`},
+		{"chunked", true, map[string]string{"channel_sync_ebay_runtime_parts": "test/runtime-0,test/runtime-1", "channel_sync_ebay_runtime_json": `{"ignored":true}`}, "disabled", "false", `{"synthetic":true}`},
 		{"explicit_active", true, map[string]string{"channel_sync_mode": "active", "channel_sync_ebay_runtime_enabled": "true", "channel_sync_ebay_runtime_json": `{"synthetic":true}`}, "active", "true", `{"synthetic":true}`},
 	} {
 		t.Run(test.name, func(t *testing.T) {
 			functions := template.FuncMap{
+				"split": func(separator, value string) []string { return strings.Split(value, separator) },
 				"nomadVarExists": func(path string) bool {
 					if !strings.HasSuffix(path, "/channel-sync") {
 						t.Fatalf("unexpected variable scope: %s", path)
@@ -45,7 +47,15 @@ func TestNativeRuntimeTemplates(t *testing.T) {
 					if !test.exists {
 						t.Fatal("absent variable must not be fetched or block rendering")
 					}
-					return test.items
+					if strings.HasSuffix(path, "/channel-sync") {
+						return test.items
+					}
+					parts := map[string]string{"test/runtime-0": `{"synthetic":`, "test/runtime-1": `true}`}
+					part, exists := parts[path]
+					if !exists {
+						t.Fatalf("unreviewed manifest part: %s", path)
+					}
+					return map[string]string{"json_part": part}
 				},
 			}
 			render := func(destination string) string {
