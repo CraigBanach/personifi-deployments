@@ -55,6 +55,29 @@ EOF
         env         = true
       }
 
+      # Preparing the native runtime must not transfer legacy writer ownership.
+      # Missing optional keys retain disabled operation and an inert private file.
+      template {
+        data = <<EOF
+CHANNEL_SYNC_MODE="{{ if nomadVarExists "TCG_MEDUSA_VAR_PATH_PLACEHOLDER/channel-sync" }}{{ with nomadVar "TCG_MEDUSA_VAR_PATH_PLACEHOLDER/channel-sync" }}{{ if index . "channel_sync_mode" }}{{ index . "channel_sync_mode" }}{{ else }}disabled{{ end }}{{ else }}disabled{{ end }}{{ else }}disabled{{ end }}"
+CHANNEL_SYNC_EBAY_RUNTIME_ENABLED="{{ if nomadVarExists "TCG_MEDUSA_VAR_PATH_PLACEHOLDER/channel-sync" }}{{ with nomadVar "TCG_MEDUSA_VAR_PATH_PLACEHOLDER/channel-sync" }}{{ if index . "channel_sync_ebay_runtime_enabled" }}{{ index . "channel_sync_ebay_runtime_enabled" }}{{ else }}false{{ end }}{{ else }}false{{ end }}{{ else }}false{{ end }}"
+CHANNEL_SYNC_EBAY_RUNTIME_FILE="/secrets/ebay-native-runtime.json"
+EOF
+        destination = "secrets/channel-sync.env"
+        env         = true
+        perms       = "0600"
+        change_mode = "restart"
+      }
+
+      template {
+        data = <<EOF
+{{ if nomadVarExists "TCG_MEDUSA_VAR_PATH_PLACEHOLDER/channel-sync" }}{{ with nomadVar "TCG_MEDUSA_VAR_PATH_PLACEHOLDER/channel-sync" }}{{ if index . "channel_sync_ebay_runtime_json" }}{{ index . "channel_sync_ebay_runtime_json" }}{{ else }}{}{{ end }}{{ else }}{}{{ end }}{{ else }}{}{{ end }}
+EOF
+        destination = "secrets/ebay-native-runtime.json"
+        perms       = "0600"
+        change_mode = "restart"
+      }
+
       template {
         data = <<EOF
 MERCHANT_SYNC_ENABLED="{{ with nomadVar "TCG_MEDUSA_VAR_PATH_PLACEHOLDER/merchant" }}{{ if index . "merchant_sync_enabled" }}{{ index . "merchant_sync_enabled" }}{{ end }}{{ end }}"
