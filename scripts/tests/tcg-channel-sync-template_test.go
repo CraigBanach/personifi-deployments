@@ -10,6 +10,12 @@ import (
 	"text/template"
 )
 
+// Nomad exposes item values as wrapper structs with a Value field and String
+// method. Even an absent map key returns a truthy zero struct, not an empty string.
+type nomadVarItem struct{ Key, Value string }
+
+func (item nomadVarItem) String() string { return item.Value }
+
 func TestNativeRuntimeTemplates(t *testing.T) {
 	source, err := os.ReadFile(filepath.Join("..", "..", "infra", "jobs", "tcg-medusa.nomad.template"))
 	if err != nil {
@@ -43,19 +49,23 @@ func TestNativeRuntimeTemplates(t *testing.T) {
 					}
 					return test.exists
 				},
-				"nomadVar": func(path string) map[string]string {
+				"nomadVar": func(path string) map[string]nomadVarItem {
 					if !test.exists {
 						t.Fatal("absent variable must not be fetched or block rendering")
 					}
 					if strings.HasSuffix(path, "/channel-sync") {
-						return test.items
+						items := map[string]nomadVarItem{}
+						for key, value := range test.items {
+							items[key] = nomadVarItem{Key: key, Value: value}
+						}
+						return items
 					}
 					parts := map[string]string{"test/runtime-0": `{"synthetic":`, "test/runtime-1": `true}`}
 					part, exists := parts[path]
 					if !exists {
 						t.Fatalf("unreviewed manifest part: %s", path)
 					}
-					return map[string]string{"json_part": part}
+					return map[string]nomadVarItem{"json_part": {Key: "json_part", Value: part}}
 				},
 			}
 			render := func(destination string) string {
@@ -85,6 +95,17 @@ func TestNativeRuntimeTemplates(t *testing.T) {
 			}
 			if got := strings.TrimSpace(render("secrets/ebay-native-runtime.json")); got != test.json {
 				t.Fatalf("private manifest mismatch: %s", got)
+			}
+			if test.name == "chunked" {
+				broken := strings.ReplaceAll(templates["secrets/ebay-native-runtime.json"], `split "," (index . "channel_sync_ebay_runtime_parts").Value`, `split "," (index . "channel_sync_ebay_runtime_parts")`)
+				parsed, err := template.New("regression").Funcs(functions).Parse(broken)
+				if err != nil {
+					t.Fatal(err)
+				}
+				var output bytes.Buffer
+				if err := parsed.Execute(&output, nil); err == nil || !strings.Contains(err.Error(), "expected string") {
+					t.Fatalf("regression must reproduce Nomad's typed-value rejection: %v", err)
+				}
 			}
 		})
 	}
