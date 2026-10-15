@@ -62,6 +62,8 @@ EOF
 CHANNEL_SYNC_MODE="{{ if nomadVarExists "TCG_MEDUSA_VAR_PATH_PLACEHOLDER/channel-sync" }}{{ with nomadVar "TCG_MEDUSA_VAR_PATH_PLACEHOLDER/channel-sync" }}{{ if (index . "channel_sync_mode").Value }}{{ (index . "channel_sync_mode").Value }}{{ else }}disabled{{ end }}{{ else }}disabled{{ end }}{{ else }}disabled{{ end }}"
 CHANNEL_SYNC_EBAY_RUNTIME_ENABLED="{{ if nomadVarExists "TCG_MEDUSA_VAR_PATH_PLACEHOLDER/channel-sync" }}{{ with nomadVar "TCG_MEDUSA_VAR_PATH_PLACEHOLDER/channel-sync" }}{{ if (index . "channel_sync_ebay_runtime_enabled").Value }}{{ (index . "channel_sync_ebay_runtime_enabled").Value }}{{ else }}false{{ end }}{{ else }}false{{ end }}{{ else }}false{{ end }}"
 CHANNEL_SYNC_EBAY_RUNTIME_FILE="/secrets/ebay-native-runtime.json"
+CHANNEL_SYNC_EBAY_RUNTIME_SOURCE="{{ if nomadVarExists "TCG_MEDUSA_VAR_PATH_PLACEHOLDER/channel-sync" }}{{ with nomadVar "TCG_MEDUSA_VAR_PATH_PLACEHOLDER/channel-sync" }}{{ if (index . "channel_sync_ebay_runtime_source").Value }}{{ (index . "channel_sync_ebay_runtime_source").Value }}{{ else }}file{{ end }}{{ else }}file{{ end }}{{ else }}file{{ end }}"
+CHANNEL_SYNC_EBAY_RUNTIME_CONNECTION_ID="{{ if nomadVarExists "TCG_MEDUSA_VAR_PATH_PLACEHOLDER/channel-sync" }}{{ with nomadVar "TCG_MEDUSA_VAR_PATH_PLACEHOLDER/channel-sync" }}{{ if (index . "channel_sync_ebay_runtime_connection_id").Value }}{{ (index . "channel_sync_ebay_runtime_connection_id").Value }}{{ end }}{{ end }}{{ end }}"
 EOF
         destination = "secrets/channel-sync.env"
         env         = true
@@ -71,7 +73,7 @@ EOF
 
       template {
         data = <<EOF
-{{ if nomadVarExists "TCG_MEDUSA_VAR_PATH_PLACEHOLDER/channel-sync" }}{{ with nomadVar "TCG_MEDUSA_VAR_PATH_PLACEHOLDER/channel-sync" }}{{ if (index . "channel_sync_ebay_runtime_parts").Value }}{{ range $path := split "," (index . "channel_sync_ebay_runtime_parts").Value }}{{ with nomadVar $path }}{{ (index . "json_part").Value }}{{ end }}{{ end }}{{ else if (index . "channel_sync_ebay_runtime_json").Value }}{{ (index . "channel_sync_ebay_runtime_json").Value }}{{ else }}{}{{ end }}{{ else }}{}{{ end }}{{ else }}{}{{ end }}
+{{ if nomadVarExists "TCG_MEDUSA_VAR_PATH_PLACEHOLDER/channel-sync" }}{{ with nomadVar "TCG_MEDUSA_VAR_PATH_PLACEHOLDER/channel-sync" }}{{ if eq (index . "channel_sync_ebay_runtime_source").Value "postgres" }}{}{{ else if (index . "channel_sync_ebay_runtime_parts").Value }}{{ range $path := split "," (index . "channel_sync_ebay_runtime_parts").Value }}{{ with nomadVar $path }}{{ (index . "json_part").Value }}{{ end }}{{ end }}{{ else if (index . "channel_sync_ebay_runtime_json").Value }}{{ (index . "channel_sync_ebay_runtime_json").Value }}{{ else }}{}{{ end }}{{ else }}{}{{ end }}{{ else }}{}{{ end }}
 EOF
         destination = "secrets/ebay-native-runtime.json"
         perms       = "0600"

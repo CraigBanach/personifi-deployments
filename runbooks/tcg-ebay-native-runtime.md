@@ -6,6 +6,10 @@ It is separate from `.../secrets`, which routine deployment reconciles:
 
 - `channel_sync_mode`: defaults to `disabled`.
 - `channel_sync_ebay_runtime_enabled`: defaults to `false`.
+- `channel_sync_ebay_runtime_source`: `file` (default), or explicitly reviewed
+  `postgres` after backend migration and audited configuration activation.
+- `channel_sync_ebay_runtime_connection_id`: exact existing account connection
+  required for Postgres mode; no first-account fallback.
 - `channel_sync_ebay_runtime_json`: the reviewed private JSON manifest; defaults
   to `{}` while disabled. Never store credentials or buyer payloads here.
 - `channel_sync_ebay_runtime_parts`: alternatively, an ordered comma-separated
@@ -45,5 +49,12 @@ using a compare-and-set that preserves other variable keys. Inspect the stale
 polling interval and stock backlog before resumption; never republish ended
 offers or re-enable legacy writers. Verify readability as UID 1000 after a
 template render/restart, not only with a root diagnostic process.
+
+Postgres mode renders `{}` instead of reading multipart/inline manifests. It
+still honors the external runtime enablement switch. Keep original private
+manifest evidence for rollback review. The version, canonical fingerprint and
+activation generation must be independently verified before resuming the worker.
+Changing this template alone does not reconcile production: the GitOps poller
+intentionally requires an approved production promotion manifest change.
 Stopping the native worker does not automatically restore legacy ownership;
 retained native effects must never be consumed again by legacy processing.
