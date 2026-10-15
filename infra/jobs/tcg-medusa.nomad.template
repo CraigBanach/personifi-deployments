@@ -75,6 +75,8 @@ EOF
 EOF
         destination = "secrets/ebay-native-runtime.json"
         perms       = "0600"
+        uid         = 1000
+        gid         = 1000
         change_mode = "restart"
       }
 

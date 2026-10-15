@@ -115,4 +115,9 @@ func TestNativeRuntimeTemplates(t *testing.T) {
 			t.Fatalf("private permissions/restart contract missing: %s", destination)
 		}
 	}
+	// The backend image runs as the non-root node user. Root-owned 0600
+	// manifests render successfully but stop the worker with EACCES.
+	if !regexp.MustCompile(`(?s)destination\s*=\s*"secrets/ebay-native-runtime.json"[^}]*uid\s*=\s*1000[^}]*gid\s*=\s*1000`).Match(source) {
+		t.Fatal("runtime manifest must remain private and readable by backend UID/GID 1000")
+	}
 }

@@ -15,7 +15,9 @@ It is separate from `.../secrets`, which routine deployment reconciles:
   limit. Keep every part below that limit, including its item-key bytes.
 
 The manifest is rendered to `/secrets/ebay-native-runtime.json` inside the backend
-container, with `0600` permissions. The backend gets its absolute path through
+container, with `0600` permissions and UID/GID `1000:1000` (the non-root backend
+image user). Rendering it root-owned prevents the runtime from reading it even
+when HTTP health is green. The backend gets its absolute path through
 `CHANNEL_SYNC_EBAY_RUNTIME_FILE`. Changes restart the backend; changing this
 template or deploying an application image alone does not enable processing.
 
@@ -38,5 +40,10 @@ produce a partial configuration. During initial staging the database connection
 must remain disabled, so reader enablement alone cannot exclude legacy writers.
 
 After the switch verify polling/import/stock publication and plugin picking.
+Before fixing an unreadable live manifest, pause only the runtime enablement
+using a compare-and-set that preserves other variable keys. Inspect the stale
+polling interval and stock backlog before resumption; never republish ended
+offers or re-enable legacy writers. Verify readability as UID 1000 after a
+template render/restart, not only with a root diagnostic process.
 Stopping the native worker does not automatically restore legacy ownership;
 retained native effects must never be consumed again by legacy processing.
