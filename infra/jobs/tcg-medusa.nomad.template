@@ -64,6 +64,9 @@ CHANNEL_SYNC_EBAY_RUNTIME_ENABLED="{{ if nomadVarExists "TCG_MEDUSA_VAR_PATH_PLA
 CHANNEL_SYNC_EBAY_RUNTIME_FILE="/secrets/ebay-native-runtime.json"
 CHANNEL_SYNC_EBAY_RUNTIME_SOURCE="{{ if nomadVarExists "TCG_MEDUSA_VAR_PATH_PLACEHOLDER/channel-sync" }}{{ with nomadVar "TCG_MEDUSA_VAR_PATH_PLACEHOLDER/channel-sync" }}{{ if (index . "channel_sync_ebay_runtime_source").Value }}{{ (index . "channel_sync_ebay_runtime_source").Value }}{{ else }}file{{ end }}{{ else }}file{{ end }}{{ else }}file{{ end }}"
 CHANNEL_SYNC_EBAY_RUNTIME_CONNECTION_ID="{{ if nomadVarExists "TCG_MEDUSA_VAR_PATH_PLACEHOLDER/channel-sync" }}{{ with nomadVar "TCG_MEDUSA_VAR_PATH_PLACEHOLDER/channel-sync" }}{{ if (index . "channel_sync_ebay_runtime_connection_id").Value }}{{ (index . "channel_sync_ebay_runtime_connection_id").Value }}{{ end }}{{ end }}{{ end }}"
+CHANNEL_SYNC_EBAY_LISTINGS_ENABLED="{{ if nomadVarExists "TCG_MEDUSA_VAR_PATH_PLACEHOLDER/channel-sync" }}{{ with nomadVar "TCG_MEDUSA_VAR_PATH_PLACEHOLDER/channel-sync" }}{{ if (index . "channel_sync_ebay_listings_enabled").Value }}{{ (index . "channel_sync_ebay_listings_enabled").Value }}{{ else }}false{{ end }}{{ else }}false{{ end }}{{ else }}false{{ end }}"
+CHANNEL_SYNC_EBAY_LISTINGS_SOURCE="postgres"
+CHANNEL_SYNC_EBAY_LISTINGS_CONNECTION_ID="{{ if nomadVarExists "TCG_MEDUSA_VAR_PATH_PLACEHOLDER/channel-sync" }}{{ with nomadVar "TCG_MEDUSA_VAR_PATH_PLACEHOLDER/channel-sync" }}{{ if (index . "channel_sync_ebay_listings_connection_id").Value }}{{ (index . "channel_sync_ebay_listings_connection_id").Value }}{{ end }}{{ end }}{{ end }}"
 EOF
         destination = "secrets/channel-sync.env"
         env         = true

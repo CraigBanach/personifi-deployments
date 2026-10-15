@@ -40,6 +40,7 @@ func TestNativeRuntimeTemplates(t *testing.T) {
 		{"chunked", true, map[string]string{"channel_sync_ebay_runtime_parts": "test/runtime-0,test/runtime-1", "channel_sync_ebay_runtime_json": `{"ignored":true}`}, "disabled", "false", `{"synthetic":true}`},
 		{"explicit_active", true, map[string]string{"channel_sync_mode": "active", "channel_sync_ebay_runtime_enabled": "true", "channel_sync_ebay_runtime_json": `{"synthetic":true}`}, "active", "true", `{"synthetic":true}`},
 		{"postgres", true, map[string]string{"channel_sync_mode": "active", "channel_sync_ebay_runtime_enabled": "false", "channel_sync_ebay_runtime_source": "postgres", "channel_sync_ebay_runtime_connection_id": "reviewed-account", "channel_sync_ebay_runtime_parts": "must-not-be-read"}, "active", "false", `{}`},
+		{"listings_active", true, map[string]string{"channel_sync_mode": "active", "channel_sync_ebay_runtime_enabled": "true", "channel_sync_ebay_runtime_source": "postgres", "channel_sync_ebay_runtime_connection_id": "reviewed-account", "channel_sync_ebay_listings_enabled": "true", "channel_sync_ebay_listings_connection_id": "reviewed-account"}, "active", "true", `{}`},
 	} {
 		t.Run(test.name, func(t *testing.T) {
 			functions := template.FuncMap{
@@ -85,6 +86,15 @@ func TestNativeRuntimeTemplates(t *testing.T) {
 				return output.String()
 			}
 			env := render("secrets/channel-sync.env")
+			listingEnabled, listingConnection := "false", ""
+			if test.name == "listings_active" {
+				listingEnabled, listingConnection = "true", "reviewed-account"
+			}
+			for _, expected := range []string{`CHANNEL_SYNC_EBAY_LISTINGS_ENABLED="` + listingEnabled + `"`, `CHANNEL_SYNC_EBAY_LISTINGS_SOURCE="postgres"`, `CHANNEL_SYNC_EBAY_LISTINGS_CONNECTION_ID="` + listingConnection + `"`} {
+				if !strings.Contains(env, expected) {
+					t.Fatalf("listing activation must remain explicit, account-pinned and Postgres-only: %s", expected)
+				}
+			}
 			if test.name == "postgres" && (!strings.Contains(env, `CHANNEL_SYNC_EBAY_RUNTIME_SOURCE="postgres"`) || !strings.Contains(env, `CHANNEL_SYNC_EBAY_RUNTIME_CONNECTION_ID="reviewed-account"`)) {
 				t.Fatal("Postgres mode must pin the explicit account without a manifest dependency")
 			}
