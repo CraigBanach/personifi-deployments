@@ -35,6 +35,8 @@ func TestNativeRuntimeTemplates(t *testing.T) {
 		json    string
 	}{
 		{"absent", false, nil, "disabled", "false", "{}"},
+		{"cardtrader_explicit", true, map[string]string{"channel_sync_cardtrader_listings_enabled": "true", "channel_sync_attachment_settlements_enabled": "true",
+			"channel_sync_attachment_shipping_option_id": "so_reviewed", "channel_sync_attachment_location_id": "sloc_reviewed"}, "disabled", "false", "{}"},
 		{"empty", true, map[string]string{}, "disabled", "false", "{}"},
 		{"staged", true, map[string]string{"channel_sync_ebay_runtime_json": `{"synthetic":true}`}, "disabled", "false", `{"synthetic":true}`},
 		{"chunked", true, map[string]string{"channel_sync_ebay_runtime_parts": "test/runtime-0,test/runtime-1", "channel_sync_ebay_runtime_json": `{"ignored":true}`}, "disabled", "false", `{"synthetic":true}`},
@@ -86,6 +88,23 @@ func TestNativeRuntimeTemplates(t *testing.T) {
 				return output.String()
 			}
 			env := render("secrets/channel-sync.env")
+			// CardTrader and attachment switches stay off and dispatch IDs empty
+			// unless each one is explicitly set; nothing inherits from eBay keys.
+			for _, name := range []string{"CARDTRADER_OBSERVATION", "CARDTRADER_LISTINGS", "CARDTRADER_ORDERS", "CARDTRADER_NATIVE_ORDERS", "CARDTRADER_INTAKE",
+				"CARDTRADER_SHIPMENTS", "ATTACHMENT_BINDINGS", "ATTACHMENT_NATIVE_FENCE", "ATTACHMENT_FINANCIAL_CREATION", "ATTACHMENT_PLUGIN_PICKS", "ATTACHMENT_SETTLEMENTS"} {
+				want := "false"
+				if value, set := test.items["channel_sync_"+strings.ToLower(name)+"_enabled"]; set {
+					want = value
+				}
+				if expected := `CHANNEL_SYNC_` + name + `_ENABLED="` + want + `"`; !strings.Contains(env, expected) {
+					t.Fatalf("CardTrader switch must default off and be explicit: %s", expected)
+				}
+			}
+			for _, name := range []string{"ATTACHMENT_SHIPPING_OPTION_ID", "ATTACHMENT_LOCATION_ID"} {
+				if expected := `CHANNEL_SYNC_` + name + `="` + test.items["channel_sync_"+strings.ToLower(name)] + `"`; !strings.Contains(env, expected) {
+					t.Fatalf("CardTrader dispatch identity must be explicit: %s", expected)
+				}
+			}
 			listingEnabled, listingConnection := "false", ""
 			if test.name == "listings_active" {
 				listingEnabled, listingConnection = "true", "reviewed-account"
