@@ -133,6 +133,7 @@ if [ -f "$SECRETS_FILE" ]; then
     existing_transactional_smtp_user="$(nomad var get -item transactional_smtp_user "$VAR_PATH/secrets" 2>/dev/null || true)"
     existing_transactional_smtp_password="$(nomad var get -item transactional_smtp_password "$VAR_PATH/secrets" 2>/dev/null || true)"
     existing_transactional_from_email="$(nomad var get -item transactional_from_email "$VAR_PATH/secrets" 2>/dev/null || true)"
+    existing_cardtrader_api_token="$(nomad var get -item cardtrader_api_token "$VAR_PATH/secrets" 2>/dev/null || true)"
     stripe_api_key="${STRIPE_API_KEY:-$existing_stripe_api_key}"
     stripe_webhook_secret="${STRIPE_WEBHOOK_SECRET:-$existing_stripe_webhook_secret}"
     stripe_publishable_key="${NEXT_PUBLIC_STRIPE_KEY:-$existing_stripe_publishable_key}"
@@ -165,6 +166,8 @@ if [ -f "$SECRETS_FILE" ]; then
     ebay_webhook_endpoint="${EBAY_WEBHOOK_ENDPOINT:-}"
     ebay_webhook_verification_token="${EBAY_WEBHOOK_VERIFICATION_TOKEN:-}"
     ebay_oauth_scopes="${EBAY_OAUTH_SCOPES:-}"
+    # Set with scripts/set-tcg-secret.sh; kept across deploys unless the secrets file overrides it.
+    cardtrader_api_token="${CARDTRADER_API_TOKEN:-$existing_cardtrader_api_token}"
 
     stripe_value_count=0
     for value in "$stripe_api_key" "$stripe_webhook_secret" "$stripe_publishable_key"; do
@@ -231,7 +234,7 @@ if [ -f "$SECRETS_FILE" ]; then
     export ebay_client_id ebay_client_secret ebay_redirect_uri ebay_token_encryption_key ebay_dev_id
     export ebay_merchant_location_key ebay_category_id ebay_fulfillment_policy_id
     export ebay_payment_policy_id ebay_return_policy_id ebay_webhook_endpoint
-    export ebay_webhook_verification_token ebay_oauth_scopes
+    export ebay_webhook_verification_token ebay_oauth_scopes cardtrader_api_token
 
     python3 - "$TEMP_DB" "$TEMP_SECRETS" <<'PY'
 import json
@@ -283,6 +286,7 @@ secret_names = (
     "ebay_webhook_endpoint",
     "ebay_webhook_verification_token",
     "ebay_oauth_scopes",
+    "cardtrader_api_token",
 )
 environment_names = {
     "publishable_key": "NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY",
