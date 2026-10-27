@@ -134,6 +134,8 @@ if [ -f "$SECRETS_FILE" ]; then
     existing_transactional_smtp_password="$(nomad var get -item transactional_smtp_password "$VAR_PATH/secrets" 2>/dev/null || true)"
     existing_transactional_from_email="$(nomad var get -item transactional_from_email "$VAR_PATH/secrets" 2>/dev/null || true)"
     existing_cardtrader_api_token="$(nomad var get -item cardtrader_api_token "$VAR_PATH/secrets" 2>/dev/null || true)"
+    existing_contact_bcc_email="$(nomad var get -item contact_bcc_email "$VAR_PATH/secrets" 2>/dev/null || true)"
+    existing_transactional_reply_to_email="$(nomad var get -item transactional_reply_to_email "$VAR_PATH/secrets" 2>/dev/null || true)"
     stripe_api_key="${STRIPE_API_KEY:-$existing_stripe_api_key}"
     stripe_webhook_secret="${STRIPE_WEBHOOK_SECRET:-$existing_stripe_webhook_secret}"
     stripe_publishable_key="${NEXT_PUBLIC_STRIPE_KEY:-$existing_stripe_publishable_key}"
@@ -168,6 +170,9 @@ if [ -f "$SECRETS_FILE" ]; then
     ebay_oauth_scopes="${EBAY_OAUTH_SCOPES:-}"
     # Set with scripts/set-tcg-secret.sh; kept across deploys unless the secrets file overrides it.
     cardtrader_api_token="${CARDTRADER_API_TOKEN:-$existing_cardtrader_api_token}"
+    # Optional; set with scripts/set-tcg-secret.sh and kept across deploys like the token above.
+    contact_bcc_email="${CONTACT_BCC_EMAIL:-$existing_contact_bcc_email}"
+    transactional_reply_to_email="${TRANSACTIONAL_REPLY_TO_EMAIL:-$existing_transactional_reply_to_email}"
 
     stripe_value_count=0
     for value in "$stripe_api_key" "$stripe_webhook_secret" "$stripe_publishable_key"; do
@@ -235,6 +240,7 @@ if [ -f "$SECRETS_FILE" ]; then
     export ebay_merchant_location_key ebay_category_id ebay_fulfillment_policy_id
     export ebay_payment_policy_id ebay_return_policy_id ebay_webhook_endpoint
     export ebay_webhook_verification_token ebay_oauth_scopes cardtrader_api_token
+    export contact_bcc_email transactional_reply_to_email
 
     python3 - "$TEMP_DB" "$TEMP_SECRETS" <<'PY'
 import json
@@ -287,6 +293,8 @@ secret_names = (
     "ebay_webhook_verification_token",
     "ebay_oauth_scopes",
     "cardtrader_api_token",
+    "contact_bcc_email",
+    "transactional_reply_to_email",
 )
 environment_names = {
     "publishable_key": "NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY",

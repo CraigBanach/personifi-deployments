@@ -30,6 +30,7 @@ TRANSACTIONAL_SMTP_SECURE="{{ with nomadVar "TCG_MEDUSA_VAR_PATH_PLACEHOLDER/sec
 TRANSACTIONAL_SMTP_USER="{{ with nomadVar "TCG_MEDUSA_VAR_PATH_PLACEHOLDER/secrets" }}{{ if index . "transactional_smtp_user" }}{{ index . "transactional_smtp_user" }}{{ end }}{{ end }}"
 TRANSACTIONAL_SMTP_PASSWORD="{{ with nomadVar "TCG_MEDUSA_VAR_PATH_PLACEHOLDER/secrets" }}{{ if index . "transactional_smtp_password" }}{{ index . "transactional_smtp_password" }}{{ end }}{{ end }}"
 TRANSACTIONAL_FROM_EMAIL="{{ with nomadVar "TCG_MEDUSA_VAR_PATH_PLACEHOLDER/secrets" }}{{ if index . "transactional_from_email" }}{{ index . "transactional_from_email" }}{{ end }}{{ end }}"
+TRANSACTIONAL_REPLY_TO_EMAIL="{{ with nomadVar "TCG_MEDUSA_VAR_PATH_PLACEHOLDER/secrets" }}{{ if index . "transactional_reply_to_email" }}{{ index . "transactional_reply_to_email" }}{{ end }}{{ end }}"
 EBAY_API_BASE="{{ with nomadVar "TCG_MEDUSA_VAR_PATH_PLACEHOLDER/secrets" }}{{ if index . "ebay_api_base" }}{{ index . "ebay_api_base" }}{{ end }}{{ end }}"
 EBAY_MARKETPLACE_ID="{{ with nomadVar "TCG_MEDUSA_VAR_PATH_PLACEHOLDER/secrets" }}{{ if index . "ebay_marketplace_id" }}{{ index . "ebay_marketplace_id" }}{{ end }}{{ end }}"
 EBAY_LOCALE="{{ with nomadVar "TCG_MEDUSA_VAR_PATH_PLACEHOLDER/secrets" }}{{ if index . "ebay_locale" }}{{ index . "ebay_locale" }}{{ end }}{{ end }}"
@@ -210,6 +211,7 @@ SMTP_USER="{{ with nomadVar "TCG_MEDUSA_VAR_PATH_PLACEHOLDER/secrets" }}{{ if in
 SMTP_PASSWORD="{{ with nomadVar "TCG_MEDUSA_VAR_PATH_PLACEHOLDER/secrets" }}{{ if index . "contact_smtp_password" }}{{ index . "contact_smtp_password" }}{{ end }}{{ end }}"
 CONTACT_FROM_EMAIL="{{ with nomadVar "TCG_MEDUSA_VAR_PATH_PLACEHOLDER/secrets" }}{{ if index . "contact_from_email" }}{{ index . "contact_from_email" }}{{ end }}{{ end }}"
 CONTACT_TO_EMAIL="{{ with nomadVar "TCG_MEDUSA_VAR_PATH_PLACEHOLDER/secrets" }}{{ if index . "contact_to_email" }}{{ index . "contact_to_email" }}{{ end }}{{ end }}"
+CONTACT_BCC_EMAIL="{{ with nomadVar "TCG_MEDUSA_VAR_PATH_PLACEHOLDER/secrets" }}{{ if index . "contact_bcc_email" }}{{ index . "contact_bcc_email" }}{{ end }}{{ end }}"
 EOF
         destination = "local/storefront-secrets.env"
         env         = true
