@@ -136,6 +136,11 @@ if [ -f "$SECRETS_FILE" ]; then
     existing_cardtrader_api_token="$(nomad var get -item cardtrader_api_token "$VAR_PATH/secrets" 2>/dev/null || true)"
     existing_contact_bcc_email="$(nomad var get -item contact_bcc_email "$VAR_PATH/secrets" 2>/dev/null || true)"
     existing_transactional_reply_to_email="$(nomad var get -item transactional_reply_to_email "$VAR_PATH/secrets" 2>/dev/null || true)"
+    existing_click_and_drop_enabled="$(nomad var get -item click_and_drop_enabled "$VAR_PATH/secrets" 2>/dev/null || true)"
+    existing_click_and_drop_api_key="$(nomad var get -item click_and_drop_api_key "$VAR_PATH/secrets" 2>/dev/null || true)"
+    existing_click_and_drop_push_from="$(nomad var get -item click_and_drop_push_from "$VAR_PATH/secrets" 2>/dev/null || true)"
+    existing_click_and_drop_tracked_service="$(nomad var get -item click_and_drop_tracked_service "$VAR_PATH/secrets" 2>/dev/null || true)"
+    existing_click_and_drop_untracked_service="$(nomad var get -item click_and_drop_untracked_service "$VAR_PATH/secrets" 2>/dev/null || true)"
     stripe_api_key="${STRIPE_API_KEY:-$existing_stripe_api_key}"
     stripe_webhook_secret="${STRIPE_WEBHOOK_SECRET:-$existing_stripe_webhook_secret}"
     stripe_publishable_key="${NEXT_PUBLIC_STRIPE_KEY:-$existing_stripe_publishable_key}"
@@ -173,6 +178,12 @@ if [ -f "$SECRETS_FILE" ]; then
     # Optional; set with scripts/set-tcg-secret.sh and kept across deploys like the token above.
     contact_bcc_email="${CONTACT_BCC_EMAIL:-$existing_contact_bcc_email}"
     transactional_reply_to_email="${TRANSACTIONAL_REPLY_TO_EMAIL:-$existing_transactional_reply_to_email}"
+    # Royal Mail Click & Drop (off unless enabled); kept across deploys like the values above.
+    click_and_drop_enabled="${CLICK_AND_DROP_ENABLED:-$existing_click_and_drop_enabled}"
+    click_and_drop_api_key="${CLICK_AND_DROP_API_KEY:-$existing_click_and_drop_api_key}"
+    click_and_drop_push_from="${CLICK_AND_DROP_PUSH_FROM:-$existing_click_and_drop_push_from}"
+    click_and_drop_tracked_service="${CLICK_AND_DROP_TRACKED_SERVICE:-$existing_click_and_drop_tracked_service}"
+    click_and_drop_untracked_service="${CLICK_AND_DROP_UNTRACKED_SERVICE:-$existing_click_and_drop_untracked_service}"
 
     stripe_value_count=0
     for value in "$stripe_api_key" "$stripe_webhook_secret" "$stripe_publishable_key"; do
@@ -241,6 +252,7 @@ if [ -f "$SECRETS_FILE" ]; then
     export ebay_payment_policy_id ebay_return_policy_id ebay_webhook_endpoint
     export ebay_webhook_verification_token ebay_oauth_scopes cardtrader_api_token
     export contact_bcc_email transactional_reply_to_email
+    export click_and_drop_enabled click_and_drop_api_key click_and_drop_push_from click_and_drop_tracked_service click_and_drop_untracked_service
 
     python3 - "$TEMP_DB" "$TEMP_SECRETS" <<'PY'
 import json
@@ -295,6 +307,11 @@ secret_names = (
     "cardtrader_api_token",
     "contact_bcc_email",
     "transactional_reply_to_email",
+    "click_and_drop_enabled",
+    "click_and_drop_api_key",
+    "click_and_drop_push_from",
+    "click_and_drop_tracked_service",
+    "click_and_drop_untracked_service",
 )
 environment_names = {
     "publishable_key": "NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY",

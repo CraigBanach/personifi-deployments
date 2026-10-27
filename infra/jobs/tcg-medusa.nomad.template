@@ -52,6 +52,11 @@ EBAY_WEBHOOK_ENDPOINT="{{ with nomadVar "TCG_MEDUSA_VAR_PATH_PLACEHOLDER/secrets
 EBAY_WEBHOOK_VERIFICATION_TOKEN="{{ with nomadVar "TCG_MEDUSA_VAR_PATH_PLACEHOLDER/secrets" }}{{ if index . "ebay_webhook_verification_token" }}{{ index . "ebay_webhook_verification_token" }}{{ end }}{{ end }}"
 EBAY_OAUTH_SCOPES="{{ with nomadVar "TCG_MEDUSA_VAR_PATH_PLACEHOLDER/secrets" }}{{ if index . "ebay_oauth_scopes" }}{{ index . "ebay_oauth_scopes" }}{{ end }}{{ end }}"
 CARDTRADER_API_TOKEN="{{ with nomadVar "TCG_MEDUSA_VAR_PATH_PLACEHOLDER/secrets" }}{{ if index . "cardtrader_api_token" }}{{ index . "cardtrader_api_token" }}{{ end }}{{ end }}"
+CLICK_AND_DROP_ENABLED="{{ with nomadVar "TCG_MEDUSA_VAR_PATH_PLACEHOLDER/secrets" }}{{ if index . "click_and_drop_enabled" }}{{ index . "click_and_drop_enabled" }}{{ end }}{{ end }}"
+CLICK_AND_DROP_API_KEY="{{ with nomadVar "TCG_MEDUSA_VAR_PATH_PLACEHOLDER/secrets" }}{{ if index . "click_and_drop_api_key" }}{{ index . "click_and_drop_api_key" }}{{ end }}{{ end }}"
+CLICK_AND_DROP_PUSH_FROM="{{ with nomadVar "TCG_MEDUSA_VAR_PATH_PLACEHOLDER/secrets" }}{{ if index . "click_and_drop_push_from" }}{{ index . "click_and_drop_push_from" }}{{ end }}{{ end }}"
+CLICK_AND_DROP_TRACKED_SERVICE="{{ with nomadVar "TCG_MEDUSA_VAR_PATH_PLACEHOLDER/secrets" }}{{ if index . "click_and_drop_tracked_service" }}{{ index . "click_and_drop_tracked_service" }}{{ end }}{{ end }}"
+CLICK_AND_DROP_UNTRACKED_SERVICE="{{ with nomadVar "TCG_MEDUSA_VAR_PATH_PLACEHOLDER/secrets" }}{{ if index . "click_and_drop_untracked_service" }}{{ index . "click_and_drop_untracked_service" }}{{ end }}{{ end }}"
 EOF
         destination = "local/backend-secrets.env"
         env         = true
