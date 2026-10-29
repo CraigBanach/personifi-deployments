@@ -139,6 +139,12 @@ if [ -f "$SECRETS_FILE" ]; then
     existing_click_and_drop_enabled="$(nomad var get -item click_and_drop_enabled "$VAR_PATH/secrets" 2>/dev/null || true)"
     existing_click_and_drop_api_key="$(nomad var get -item click_and_drop_api_key "$VAR_PATH/secrets" 2>/dev/null || true)"
     existing_click_and_drop_push_from="$(nomad var get -item click_and_drop_push_from "$VAR_PATH/secrets" 2>/dev/null || true)"
+    existing_google_ads_customer_id="$(nomad var get -item google_ads_customer_id "$VAR_PATH/secrets" 2>/dev/null || true)"
+    existing_google_ads_login_customer_id="$(nomad var get -item google_ads_login_customer_id "$VAR_PATH/secrets" 2>/dev/null || true)"
+    existing_google_ads_conversion_action_id="$(nomad var get -item google_ads_conversion_action_id "$VAR_PATH/secrets" 2>/dev/null || true)"
+    existing_google_data_manager_client_id="$(nomad var get -item google_data_manager_client_id "$VAR_PATH/secrets" 2>/dev/null || true)"
+    existing_google_data_manager_client_secret="$(nomad var get -item google_data_manager_client_secret "$VAR_PATH/secrets" 2>/dev/null || true)"
+    existing_google_data_manager_refresh_token="$(nomad var get -item google_data_manager_refresh_token "$VAR_PATH/secrets" 2>/dev/null || true)"
     stripe_api_key="${STRIPE_API_KEY:-$existing_stripe_api_key}"
     stripe_webhook_secret="${STRIPE_WEBHOOK_SECRET:-$existing_stripe_webhook_secret}"
     stripe_publishable_key="${NEXT_PUBLIC_STRIPE_KEY:-$existing_stripe_publishable_key}"
@@ -180,6 +186,13 @@ if [ -f "$SECRETS_FILE" ]; then
     click_and_drop_enabled="${CLICK_AND_DROP_ENABLED:-$existing_click_and_drop_enabled}"
     click_and_drop_api_key="${CLICK_AND_DROP_API_KEY:-$existing_click_and_drop_api_key}"
     click_and_drop_push_from="${CLICK_AND_DROP_PUSH_FROM:-$existing_click_and_drop_push_from}"
+    # Google Ads purchase conversions (off until all but the login account are set); kept across deploys.
+    google_ads_customer_id="${GOOGLE_ADS_CUSTOMER_ID:-$existing_google_ads_customer_id}"
+    google_ads_login_customer_id="${GOOGLE_ADS_LOGIN_CUSTOMER_ID:-$existing_google_ads_login_customer_id}"
+    google_ads_conversion_action_id="${GOOGLE_ADS_CONVERSION_ACTION_ID:-$existing_google_ads_conversion_action_id}"
+    google_data_manager_client_id="${GOOGLE_DATA_MANAGER_CLIENT_ID:-$existing_google_data_manager_client_id}"
+    google_data_manager_client_secret="${GOOGLE_DATA_MANAGER_CLIENT_SECRET:-$existing_google_data_manager_client_secret}"
+    google_data_manager_refresh_token="${GOOGLE_DATA_MANAGER_REFRESH_TOKEN:-$existing_google_data_manager_refresh_token}"
 
     stripe_value_count=0
     for value in "$stripe_api_key" "$stripe_webhook_secret" "$stripe_publishable_key"; do
@@ -249,6 +262,8 @@ if [ -f "$SECRETS_FILE" ]; then
     export ebay_webhook_verification_token ebay_oauth_scopes cardtrader_api_token
     export contact_bcc_email transactional_reply_to_email
     export click_and_drop_enabled click_and_drop_api_key click_and_drop_push_from
+    export google_ads_customer_id google_ads_login_customer_id google_ads_conversion_action_id
+    export google_data_manager_client_id google_data_manager_client_secret google_data_manager_refresh_token
 
     python3 - "$TEMP_DB" "$TEMP_SECRETS" <<'PY'
 import json
@@ -306,6 +321,12 @@ secret_names = (
     "click_and_drop_enabled",
     "click_and_drop_api_key",
     "click_and_drop_push_from",
+    "google_ads_customer_id",
+    "google_ads_login_customer_id",
+    "google_ads_conversion_action_id",
+    "google_data_manager_client_id",
+    "google_data_manager_client_secret",
+    "google_data_manager_refresh_token",
 )
 environment_names = {
     "publishable_key": "NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY",
