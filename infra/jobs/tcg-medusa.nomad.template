@@ -177,6 +177,10 @@ EOF
         ADMIN_CORS = "https://API_HOST_PLACEHOLDER"
         AUTH_CORS  = "https://API_HOST_PLACEHOLDER,https://STOREFRONT_HOST_PLACEHOLDER"
         MEDUSA_BACKEND_URL = "https://API_HOST_PLACEHOLDER"
+        # Public PostHog project token (already in the storefront bundle) for
+        # server-side purchase and marketplace sale events.
+        POSTHOG_PROJECT_TOKEN = "phc_pkyap9y4PpeKSrdUpgQ7XRu87eJGVyagZ7bEatCTkSZj"
+        POSTHOG_HOST          = "https://eu.i.posthog.com"
       }
 
       resources {
