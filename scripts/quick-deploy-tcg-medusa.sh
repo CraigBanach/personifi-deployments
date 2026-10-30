@@ -366,8 +366,10 @@ with open(secrets_path, "w", encoding="utf-8") as secrets_file:
     )
 PY
 
-    nomad var put -force "$VAR_PATH/database" "@$TEMP_DB"
-    nomad var put -force "$VAR_PATH/secrets" "@$TEMP_SECRETS"
+    nomad var put -force -out=none "$VAR_PATH/database" "@$TEMP_DB"
+    # Keep separately provisioned keys (e.g. Brevo) in memory, not in temporary
+    # files or logs. Fail closed on a concurrent variable update.
+    python3 "$DEPLOY_DIR/scripts/update-tcg-secret-variable.py" "$VAR_PATH/secrets" "$TEMP_SECRETS"
 else
     nomad var get "$VAR_PATH/database" >/dev/null || \
         error "Missing $SECRETS_FILE and Nomad variable $VAR_PATH/database"

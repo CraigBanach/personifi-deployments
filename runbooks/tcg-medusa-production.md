@@ -75,6 +75,26 @@ The VPS service `gitops-deploy.service` runs as `gitops` from `/opt/gitops`
 every two minutes. A production-promotion manifest change re-renders the Nomad
 job and replaces the backend allocation.
 
+## Newsletter connection
+
+Brevo credentials live only in `tcg-store/medusa/production/secrets`, under
+`brevo_api_key`, `brevo_newsletter_list_id` and `brevo_webhook_secret`. The backend
+template renders the corresponding uppercase environment variables. They are
+not storefront settings or manifest values. Keep order/service/confirmation
+SMTP on Purelymail; marketing welcome delivery belongs to Brevo automation.
+
+The deployment script merges its settings with a fresh read of the existing
+secret variable, preserving separately installed keys. The write uses the read
+ModifyIndex as a compare-and-set condition, keeps preserved secrets in memory,
+and suppresses secret output. A failed read or CAS stops deployment; never
+replace this with a forced stale write. Initial secret-variable provisioning
+must happen separately before this script can update it.
+
+Template/script changes alone do not restart Free Splash. Merge them before
+the approved application promotion updates the production manifest; the next
+manifest reconciliation then renders the new template. Do not manually change
+image digests or the manifest just to activate these mappings.
+
 Run the production deployment manually as `gitops`:
 
 ```bash
