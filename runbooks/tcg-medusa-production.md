@@ -102,3 +102,15 @@ sudo -u gitops bash /opt/personifi-deployments/scripts/quick-deploy-tcg-medusa.s
 ```
 
 Config batch jobs purge the previous production-qualified job and wait for a successful allocation. A merely terminal job is not treated as successful.
+
+## CardNexus connection
+
+The CardNexus API key and webhook signing secret live only in
+`tcg-store/medusa/production/secrets`, under `cardnexus_api_key` (`cnk_live_…`)
+and `cardnexus_webhook_secret` (`whsec_…`), and render into the backend as
+`CARDNEXUS_API_KEY` and `CARDNEXUS_WEBHOOK_SECRET`. Install them with
+`set-tcg-secret.sh <key>` from an interactive terminal; deployments preserve
+them. Everything else about the connection (creation, settings, mode) is done on
+the Channels admin page. Without the key the connection cannot leave disabled;
+without the webhook secret `POST /cardnexus/webhook` ignores deliveries and the
+five-minute sale sweep still finds orders.
