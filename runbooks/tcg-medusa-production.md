@@ -95,6 +95,35 @@ the approved application promotion updates the production manifest; the next
 manifest reconciliation then renders the new template. Do not manually change
 image digests or the manifest just to activate these mappings.
 
+### Prospective customer marketing and Admin credentials
+
+The backend-only template also maps `brevo_customer_marketing_list_id`,
+`checkout_soft_opt_in_enabled`, `checkout_soft_opt_in_activated_at`,
+`checkout_soft_opt_in_sales_channel_id`, `customer_marketing_approved_notice_version`
+and `marketing_settings_encryption_key` from the same canonical secret variable.
+Merge these template mappings before the application promotion. Use a fresh
+compare-and-set merge to preserve every existing credential; never force-write
+a stale secret snapshot. Missing optional keys render empty and do not activate enrolment.
+
+Keep the customer list (6) separate from newsletter list 3 and welcome automation 1.
+No historical/marketplace imports, customer welcome or campaign are part of setup.
+Approval and activation belong to the application rollout record, not the GitOps manifest.
+An explicit deployment `checkout_soft_opt_in_enabled=false` is an emergency hold
+that takes precedence over Admin. Release that hold only for an approved prospective rollout.
+
+Medusa Marketing → Customer marketing can manage non-secret settings and an
+optional encrypted, write-only Brevo API-key override. Its separate encryption
+master is a stable, randomly generated base64 32-byte secret, provisioned only
+on the server. Back it up with the database; do not rotate it without migrating
+encrypted overrides. Do not reuse cookie, webhook or eBay encryption secrets.
+Blank Admin key input preserves the existing credential. Webhook/cookie secrets
+remain deployment-only; ordinary Admin saves never replace canonical credentials.
+
+Use the existing protected `promote-production.yml`, with `apply_store_config=false`.
+For CI-only verification, provide a successful manually dispatched `Validate`
+run ID on main for the exact source SHA, leaving `local_verified=false`.
+Do not edit production image digests or bypass environment approval to install mappings.
+
 Run the production deployment manually as `gitops`:
 
 ```bash
