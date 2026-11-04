@@ -86,13 +86,14 @@ class ManagedRolloutTests(unittest.TestCase):
             if mode == "image": group["Tasks"][0]["Config"]["image"] = "registry/backend:latest"
             with self.assertRaises(ValueError): managed.jobs(doc)
 
-    def prepare(self, current=None, allocations=None, api_error=False):
+    def prepare(self, current=None, allocations=None, api_error=False, listed_jobs=None):
         requested = fixture()["Job"]
         requested["ID"] = "tcg-medusa-production-migrate"
         calls = []
         def output(command):
             if api_error: raise subprocess.CalledProcessError(1, command)
-            if "status" in command: return json.dumps([{"ID": requested["ID"]}] if current else [])
+            if "status" in command:
+                return json.dumps(listed_jobs if listed_jobs is not None else ([{"ID": requested["ID"]}] if current else []))
             if "inspect" in command: return json.dumps(current)
             if "allocs" in command: return json.dumps(allocations or [])
             raise AssertionError(command)
@@ -109,6 +110,21 @@ class ManagedRolloutTests(unittest.TestCase):
     def test_new_migration_is_submitted_once_and_same_image_is_never_restarted(self):
         self.assertEqual(len(self.prepare()), 1)
         self.assertEqual(self.prepare(fixture()["Job"]), [])
+
+    def test_detailed_nomad_status_uses_summary_job_identity(self):
+        listing = [{"Summary": {"JobID": "tcg-medusa-production-migrate"}, "Allocations": []}]
+        self.assertEqual(self.prepare(fixture()["Job"], listed_jobs=listing), [])
+        service_only = [{"Summary": {"JobID": "tcg-medusa-production"}, "Allocations": []}]
+        self.assertEqual(len(self.prepare(listed_jobs=service_only)), 1)
+        current = fixture()["Job"]
+        current["TaskGroups"][0]["Tasks"][0]["Config"]["image"] = "registry/old@sha256:" + "c" * 64
+        with self.assertRaises(SystemExit):
+            self.prepare(current, [{"ClientStatus": "failed"}], listed_jobs=listing)
+
+    def test_invalid_or_conflicting_listing_is_not_migration_absence(self):
+        for listing in [[{}], [None], [{"Summary": {}}], [{"ID": "one", "Summary": {"JobID": "two"}}], [{"ID": 42}]]:
+            with self.subTest(listing=listing), self.assertRaises(SystemExit):
+                self.prepare(listed_jobs=listing)
 
     def test_live_or_failed_previous_image_and_api_failure_cannot_be_replaced(self):
         current = fixture()["Job"]

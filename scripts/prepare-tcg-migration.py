@@ -9,7 +9,23 @@ with open(requested_file, encoding="utf-8") as source:
     requested = json.load(source)["Job"]
 # Listing first distinguishes absence from an authentication/network failure.
 all_jobs = json.loads(subprocess.check_output(["nomad", "job", "status", "-json"]))
-if any(job["ID"] == name for job in all_jobs):
+# Nomad CLI versions expose either Job stubs (ID) or detailed job status
+# objects (Summary.JobID). Validate the whole listing before treating absence
+# as permission to submit; malformed/ambiguous responses must fail closed.
+if not isinstance(all_jobs, list):
+    sys.exit("ERROR: Invalid Nomad job listing; refusing migration submission")
+job_ids = set()
+for job in all_jobs:
+    if not isinstance(job, dict):
+        sys.exit("ERROR: Invalid Nomad job listing; refusing migration submission")
+    summary = job.get("Summary")
+    summary_id = summary.get("JobID") if isinstance(summary, dict) else None
+    direct_id = job.get("ID")
+    identity = direct_id if direct_id is not None else summary_id
+    if not isinstance(identity, str) or not identity or (direct_id is not None and summary_id is not None and direct_id != summary_id):
+        sys.exit("ERROR: Missing or conflicting Nomad job identity; refusing migration submission")
+    job_ids.add(identity)
+if name in job_ids:
     current = json.loads(subprocess.check_output(["nomad", "job", "inspect", "-json", name]))
     current = current.get("Job", current)
     old_image = current["TaskGroups"][0]["Tasks"][0]["Config"]["image"]
