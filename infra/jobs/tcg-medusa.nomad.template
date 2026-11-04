@@ -178,7 +178,7 @@ EOF
       env {
         NODE_ENV = "production"
         PORT     = "9000"
-        DEPLOY_VERSION = "DEPLOY_VERSION_PLACEHOLDER"
+        DEPLOY_VERSION = "BACKEND_DEPLOY_VERSION_PLACEHOLDER"
         CI = "true"
         PNPM_CONFIG_CONFIRM_MODULES_PURGE = "false"
 
@@ -284,7 +284,7 @@ EOF
       env {
         NODE_ENV = "production"
         PORT     = "8000"
-        DEPLOY_VERSION = "DEPLOY_VERSION_PLACEHOLDER"
+        DEPLOY_VERSION = "STOREFRONT_DEPLOY_VERSION_PLACEHOLDER"
 
         DEPLOYMENT_ENV                 = "DEPLOYMENT_ENVIRONMENT_PLACEHOLDER"
         MEDUSA_BACKEND_URL             = "https://API_HOST_PLACEHOLDER"
