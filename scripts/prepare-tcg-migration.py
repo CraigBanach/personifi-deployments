@@ -30,6 +30,15 @@ if name in job_ids:
     current = current.get("Job", current)
     old_image = current["TaskGroups"][0]["Tasks"][0]["Config"]["image"]
     new_image = requested["TaskGroups"][0]["Tasks"][0]["Config"]["image"]
+    # Never placed (still pending, no allocation ever made): nothing touched the
+    # database, so a request the cluster cannot place may be replaced.
+    if current.get("Status") == "pending":
+        never_placed = json.loads(subprocess.check_output(["nomad", "job", "allocs", "-json", name]))
+        old_task, new_task = current["TaskGroups"][0]["Tasks"][0], requested["TaskGroups"][0]["Tasks"][0]
+        if not never_placed and (old_image != new_image or old_task.get("Resources") != new_task.get("Resources")):
+            subprocess.run(["nomad", "job", "stop", "-purge", name], check=True)
+            subprocess.run(["nomad", "job", "run", "-json", requested_file], check=True)
+            sys.exit(0)
     if old_image == new_image:
         # The bounded waiter checks completion/failure; do not erase evidence or
         # restart a timed-out or failed migration with uncertain database effects.

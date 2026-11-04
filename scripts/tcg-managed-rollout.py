@@ -6,6 +6,10 @@ import re
 import sys
 
 
+MIGRATION_MEMORY_MB = 384
+MIGRATION_MEMORY_MAX_MB = 1024
+
+
 def jobs(document):
     service = copy.deepcopy(document.get("Job", document))
     groups = service["TaskGroups"]
@@ -69,6 +73,10 @@ def jobs(document):
     batch_group["ReschedulePolicy"] = {"Attempts": 0, "Unlimited": False}
     task = copy.deepcopy(backend)
     task["Name"] = "migrate"
+    # The node cannot reserve a second backend-sized task beside the live one
+    # (4 Nov 2026: 1,536 MB never placed). Migrations reserve little and may
+    # burst into free host memory; the cluster has memory oversubscription on.
+    task["Resources"] = {**task.get("Resources", {}), "MemoryMB": MIGRATION_MEMORY_MB, "MemoryMaxMB": MIGRATION_MEMORY_MAX_MB}
     task.pop("Services", None)
     task.pop("Lifecycle", None)
     for template in task.get("Templates", []):

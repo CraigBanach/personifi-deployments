@@ -56,8 +56,9 @@ class ManagedRolloutTests(unittest.TestCase):
         self.assertEqual(len(group["Tasks"]), 1)
         self.assertEqual(group["RestartPolicy"]["Attempts"], 0)
         self.assertEqual(group["ReschedulePolicy"]["Attempts"], 0)
-        for field in ["Env", "Resources"]:
-            self.assertEqual(task[field], backend[field])
+        self.assertEqual(task["Env"], backend["Env"])
+        # Reserves little and may burst (memory oversubscription on).
+        self.assertEqual(task["Resources"], {**backend["Resources"], "MemoryMB": 384, "MemoryMaxMB": 1024})
         expected_templates = copy.deepcopy(backend["Templates"])
         for template in expected_templates: template["ChangeMode"] = "noop"
         self.assertEqual(task["Templates"], expected_templates)
@@ -120,6 +121,22 @@ class ManagedRolloutTests(unittest.TestCase):
         current["TaskGroups"][0]["Tasks"][0]["Config"]["image"] = "registry/old@sha256:" + "c" * 64
         with self.assertRaises(SystemExit):
             self.prepare(current, [{"ClientStatus": "failed"}], listed_jobs=listing)
+
+    def test_never_placed_migration_is_replaced_only_when_the_request_differs(self):
+        listing = [{"ID": "tcg-medusa-production-migrate"}]
+        # The helper requests fixture()["Job"]; the stuck job asked for more memory.
+        stuck = fixture()["Job"]
+        stuck["Status"] = "pending"
+        stuck["TaskGroups"][0]["Tasks"][0]["Resources"]["MemoryMB"] = 4096
+        calls = self.prepare(stuck, [], listed_jobs=listing)
+        self.assertEqual([c[:3] for c in calls], [["nomad", "job", "stop"], ["nomad", "job", "run"]])
+        same = fixture()["Job"]
+        same["Status"] = "pending"
+        self.assertEqual(self.prepare(same, [], listed_jobs=listing), [])
+        # Placed once (an allocation exists): never replaced by this rule.
+        with self.assertRaises(SystemExit):
+            self.prepare({**stuck, "TaskGroups": [{**stuck["TaskGroups"][0], "Tasks": [{**stuck["TaskGroups"][0]["Tasks"][0], "Config": {**stuck["TaskGroups"][0]["Tasks"][0]["Config"], "image": "registry/old@sha256:" + "c" * 64}}]}]},
+                         [{"ClientStatus": "running"}], listed_jobs=listing)
 
     def test_invalid_or_conflicting_listing_is_not_migration_absence(self):
         for listing in [[{}], [None], [{"Summary": {}}], [{"ID": "one", "Summary": {"JobID": "two"}}], [{"ID": 42}]]:
