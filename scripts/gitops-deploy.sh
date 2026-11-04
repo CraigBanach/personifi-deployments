@@ -51,6 +51,24 @@ fi
 
 cd $DEPLOY_REPO
 
+# The checkout and success receipt belong to one reconciler at a time. Preserve
+# the descriptor across the self-exec after updating the checkout.
+if [ "${GITOPS_LOCK_HELD:-false}" != true ]; then
+    exec 9>"/opt/gitops/reconcile.lock"
+    flock -n 9 || exit 0
+    export GITOPS_LOCK_HELD=true
+fi
+
+tcg_input_hash() {
+    sha256sum environments/tcg-medusa-production.env \
+        infra/jobs/tcg-medusa.nomad.template \
+        scripts/quick-deploy-tcg-medusa.sh scripts/tcg-managed-rollout.py scripts/prepare-tcg-migration.py \
+        scripts/wait-for-nomad-batch.sh scripts/wait-for-tcg-release.py \
+        scripts/update-tcg-secret-variable.py | sha256sum | cut -d' ' -f1
+}
+TCG_INPUT_HASH="$(tcg_input_hash)" || exit 1
+TCG_SUCCESS_FILE="$DEPLOY_REPO/.git/tcg-successful-inputs"
+
 # Fetch latest changes
 git fetch origin main 2>/dev/null
 if [ $? -ne 0 ]; then
@@ -62,7 +80,8 @@ LOCAL_COMMIT=$(git rev-parse HEAD)
 REMOTE_COMMIT=$(git rev-parse origin/main 2>/dev/null || echo $LOCAL_COMMIT)
 RECONCILE_UPDATED_CHECKOUT="${GITOPS_RECONCILE_UPDATED_CHECKOUT:-false}"
 
-if [ "$LOCAL_COMMIT" != "$REMOTE_COMMIT" ] || [ "$RECONCILE_UPDATED_CHECKOUT" = "true" ]; then
+if [ "$LOCAL_COMMIT" != "$REMOTE_COMMIT" ] || [ "$RECONCILE_UPDATED_CHECKOUT" = "true" ] || \
+    [ "$(cat "$TCG_SUCCESS_FILE" 2>/dev/null || true)" != "$TCG_INPUT_HASH" ]; then
     # Get the commit details. Use reset so the deployment checkout always
     # exactly matches origin/main even when local generated files changed.
     if [ "$LOCAL_COMMIT" != "$REMOTE_COMMIT" ]; then
@@ -217,10 +236,10 @@ EOD
             exit 1
         fi
 
-        # Production changes only when its promotion manifest changes. Unrelated
-        # commits in this shared GitOps repository must not restart the store.
-        if git diff --quiet "$OLD_COMMIT" HEAD -- "${TCG_MEDUSA_MANIFEST#$DEPLOY_REPO/}"; then
-            info "TCG Medusa production manifest unchanged; skipping reconciliation"
+        # Retry failures even without another commit. Include deployment code so
+        # renderer fixes can reconcile; unrelated repository changes stay no-op.
+        if [ "$(cat "$TCG_SUCCESS_FILE" 2>/dev/null || true)" = "$TCG_INPUT_HASH" ]; then
+            info "TCG Medusa inputs already reconciled; skipping"
         elif ! (
             set -a
             # shellcheck disable=SC1090
@@ -239,6 +258,8 @@ EOD
             error "TCG Medusa production deployment failed"
             exit 1
         else
+            printf '%s\n' "$TCG_INPUT_HASH" > "$TCG_SUCCESS_FILE.new"
+            mv "$TCG_SUCCESS_FILE.new" "$TCG_SUCCESS_FILE"
             success "TCG Medusa production reconciliation complete"
         fi
         

@@ -3,7 +3,9 @@ set -euo pipefail
 
 JOB_NAME="${1:?Nomad job name is required}"
 
-for _ in $(seq 1 60); do
+timeout_seconds="${NOMAD_BATCH_TIMEOUT_SECONDS:-120}"
+[[ "$timeout_seconds" =~ ^[0-9]+$ ]] || { echo "ERROR: Invalid batch timeout" >&2; exit 1; }
+for _ in $(seq 1 "$((timeout_seconds / 2))"); do
     allocation_state="$(nomad job allocs -json "$JOB_NAME" 2>/dev/null | python3 -c '
 import json, sys
 allocations = json.load(sys.stdin)

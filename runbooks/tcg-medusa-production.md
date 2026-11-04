@@ -1,12 +1,56 @@
 # TCG Medusa Production Runbook
 
-The Personifi host reconciles only the tracked production manifest, and only when that file changes. Unrelated commits in this shared GitOps repository do not restart or update Free Splash:
+The Personifi host reconciles the production manifest and its deployment helpers/templates. A receipt in `.git/tcg-successful-inputs` is written only after successful reconciliation, so failures retry without needing another commit. Unrelated commits in this shared GitOps repository do not restart or update Free Splash:
 
 ```text
 environments/tcg-medusa-production.env
 ```
 
 Production uses Nomad jobs named `tcg-medusa-production*`, variables beneath `tcg-store/medusa/production/*`, production-qualified generated job files and Traefik names, the ignored `.tcg-medusa-production.secrets.env` file, and `/opt/tcg-medusa/production` state. Deployment scripts reject non-production environments and any hostname other than `freesplash.co.uk`, `www.freesplash.co.uk`, and `api.freesplash.co.uk`.
+
+## Managed rollout and migration recovery
+
+New application promotions set `TCG_MEDUSA_MANAGED_ROLLOUT=true`. The default is
+false for older images/installations; publishing these deployment scripts alone
+does not opt existing images into managed migrations or change their group layout.
+
+- The reconciler locks `/opt/gitops/reconcile.lock`; every TCG deployment also
+  locks `/opt/gitops/tcg-medusa-rollout.lock` across migration and readiness.
+- First adoption must rebuild **both** images with release-identity endpoints and
+  managed-startup support. It requires an existing Redis answering PING on
+  `172.17.0.1:6379`; this is not a fresh-install bootstrap. Do not start a second
+  Redis against the persistence directory. Existing backend/Redis group name,
+  Redis networking and state volumes are retained. Moving storefront to its own
+  group causes a one-time allocation transition; subsequent frontend-only changes
+  leave the backend/Redis group unchanged.
+- `tcg-medusa-production-migrate` uses the exact backend image, auth, resources,
+  environment and secret templates, but no public ports, services or state mounts.
+  It runs only `pnpm predeploy`, without restart/reschedule retries; variable
+  changes do not restart it. If Nomad ACLs are enabled, authorize this job's
+  workload identity to read the same required variable paths as the backend—do
+  not grant cluster-wide access. Missing access fails closed before service rollout.
+- Successful migration records the backend image in
+  `/opt/tcg-medusa/production/migrated-backend-image`. Storefront-only releases
+  and service-rollout retries do not rerun it. If the database is intentionally
+  replaced, review/remove that receipt before rollout; it applies to this database.
+- A timed-out batch may still be alive: retries wait for the same image rather
+  than replacing/restarting it. A failed batch is retained and blocks automatic
+  replay. Inspect `nomad job status tcg-medusa-production-migrate` and its
+  allocation logs, review actual database effects, and resolve/complete the
+  migration before explicitly purging the batch to permit another attempt.
+  Never purge a live migration just to bypass the gate.
+- Migrations run while the old application serves traffic; use backward-compatible
+  expand/contract schema changes. No automatic database rollback is attempted.
+- Backend and storefront HTTP checks gate Nomad rollout; Traefik also checks
+  readiness. Public exact-digest identity plus `/health` and `/gb` must succeed
+  three consecutive times before managed reconciliation is marked successful.
+  GitHub promotion independently verifies the same evidence after publishing the
+  manifest. A committed manifest is desired state, not verified deployment.
+
+Local tests: `python3 -m unittest discover -s scripts/tests -p 'test_*.py'` and
+`GO111MODULE=off go test ./scripts/tests`. Parse the rendered HCL with
+`nomad job run -output`, derive both JSON jobs using `tcg-managed-rollout.py`,
+then validate each with `nomad job validate -json` before changing rollout logic.
 
 On the first reconciliation, the deploy script moves the legacy `.tcg-medusa.secrets.env` file into its production-qualified location. Move root-owned state before retiring the legacy job:
 

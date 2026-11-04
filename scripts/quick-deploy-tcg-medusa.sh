@@ -6,6 +6,10 @@ DEPLOY_DIR="/opt/personifi-deployments"
 NOMAD_JOBS_DIR="/opt/nomad/jobs"
 GITOPS_USER="gitops"
 
+# Serialize manual invocations with reconciler-driven migrations and rollouts.
+exec 8>"/opt/gitops/tcg-medusa-rollout.lock"
+flock -w 1200 8 || { echo "ERROR: Another TCG rollout holds the lock" >&2; exit 1; }
+
 requested_backend_image="${BACKEND_IMAGE:-}"
 requested_storefront_image="${STOREFRONT_IMAGE:-}"
 
@@ -46,9 +50,12 @@ STATE_PATH="/opt/tcg-medusa/$DEPLOYMENT_ENVIRONMENT"
 SERVICE_JOB="tcg-medusa-$DEPLOYMENT_ENVIRONMENT"
 TEMP_DB="$(mktemp --suffix=.json)"
 TEMP_SECRETS="$(mktemp --suffix=.json)"
+TEMP_SERVICE="$(mktemp --suffix=.json)"
+TEMP_MANAGED="$(mktemp --suffix=.json)"
+TEMP_MIGRATION="$(mktemp --suffix=.json)"
 
 cleanup() {
-    rm -f "$TEMP_DB" "$TEMP_SECRETS"
+    rm -f "$TEMP_DB" "$TEMP_SECRETS" "$TEMP_SERVICE" "$TEMP_MANAGED" "$TEMP_MIGRATION"
 }
 
 trap cleanup EXIT
@@ -415,7 +422,27 @@ sed \
     "infra/jobs/tcg-medusa.nomad.template" > \
     "$NOMAD_JOBS_DIR/$SERVICE_JOB.nomad"
 
-nomad job run "$NOMAD_JOBS_DIR/$SERVICE_JOB.nomad"
+case "${TCG_MEDUSA_MANAGED_ROLLOUT:-false}" in
+    false) nomad job run "$NOMAD_JOBS_DIR/$SERVICE_JOB.nomad" ;;
+    true)
+        nomad job run -output "$NOMAD_JOBS_DIR/$SERVICE_JOB.nomad" > "$TEMP_SERVICE"
+        python3 scripts/tcg-managed-rollout.py "$TEMP_SERVICE" "$TEMP_MANAGED" "$TEMP_MIGRATION"
+        migration_marker="$STATE_PATH/migrated-backend-image"
+        if [ "$(cat "$migration_marker" 2>/dev/null || true)" != "$BACKEND_IMAGE" ]; then
+            # Managed adoption is deliberately not a fresh-install bootstrap.
+            # Never launch a second Redis against the existing persistence directory.
+            python3 -c 'import socket; s=socket.create_connection(("172.17.0.1",6379),5); s.sendall(b"*1\r\n$4\r\nPING\r\n"); assert s.recv(64)==b"+PONG\r\n", "Existing production Redis is not ready"; s.close()'
+            python3 scripts/prepare-tcg-migration.py "$SERVICE_JOB-migrate" "$TEMP_MIGRATION"
+            NOMAD_BATCH_TIMEOUT_SECONDS=600 bash scripts/wait-for-nomad-batch.sh "$SERVICE_JOB-migrate"
+            printf '%s\n' "$BACKEND_IMAGE" > "$migration_marker.new"
+            mv "$migration_marker.new" "$migration_marker"
+        fi
+        # No service submission occurs after a failed/timed-out migration.
+        nomad job run -json "$TEMP_MANAGED"
+        python3 scripts/wait-for-tcg-release.py "$BACKEND_DEPLOY_VERSION" "$STOREFRONT_DEPLOY_VERSION"
+        ;;
+    *) error "TCG_MEDUSA_MANAGED_ROLLOUT must be true or false" ;;
+esac
 
 if [ "$RUN_CONFIG" = "true" ]; then
     BACKEND_IMAGE="$BACKEND_IMAGE" API_HOST="$API_HOST" STOREFRONT_HOST="$STOREFRONT_HOST" \
@@ -426,4 +453,4 @@ fi
 
 echo "Catalog synchronization disabled for production"
 
-echo "TCG Medusa $DEPLOYMENT_ENVIRONMENT deployment complete. Check status with: nomad job status $SERVICE_JOB"
+echo "TCG Medusa $DEPLOYMENT_ENVIRONMENT reconciliation finished (managed releases include public readiness verification). Check: nomad job status $SERVICE_JOB"
