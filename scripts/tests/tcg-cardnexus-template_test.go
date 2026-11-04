@@ -15,6 +15,7 @@ import (
 func TestCardNexusBackendSecrets(t *testing.T) {
 	source, err := os.ReadFile(filepath.Join("..", "..", "infra", "jobs", "tcg-medusa.nomad.template"))
 	if err != nil { t.Fatal(err) }
+	source = bytes.ReplaceAll(source, []byte("\r\n"), []byte("\n"))
 	lines := regexp.MustCompile(`(?m)^CARDNEXUS_[A-Z_]+=.*$`).FindAll(source, -1)
 	if len(lines) != 2 { t.Fatalf("expected exactly two backend mappings, got %d", len(lines)) }
 	for _, configured := range []bool{false, true} {

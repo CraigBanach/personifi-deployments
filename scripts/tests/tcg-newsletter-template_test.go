@@ -13,12 +13,13 @@ import (
 func TestNewsletterBackendSecrets(t *testing.T) {
 	source, err := os.ReadFile(filepath.Join("..", "..", "infra", "jobs", "tcg-medusa.nomad.template"))
 	if err != nil { t.Fatal(err) }
+	source = bytes.ReplaceAll(source, []byte("\r\n"), []byte("\n"))
 	lines := regexp.MustCompile(`(?m)^BREVO_[A-Z_]+=.*$`).FindAll(source, -1)
-	if len(lines) != 3 { t.Fatalf("expected exactly three backend mappings, got %d", len(lines)) }
+	if len(lines) != 4 { t.Fatalf("expected exactly four backend mappings, got %d", len(lines)) }
 	for _, configured := range []bool{false, true} {
 		items := map[string]nomadVarItem{}
 		if configured {
-			for key, value := range map[string]string{"brevo_api_key": "fixture-only", "brevo_newsletter_list_id": "3", "brevo_webhook_secret": "fixture-secret"} {
+			for key, value := range map[string]string{"brevo_api_key": "fixture-only", "brevo_newsletter_list_id": "3", "brevo_webhook_secret": "fixture-secret", "brevo_customer_marketing_list_id": "4"} {
 				items[key] = nomadVarItem{Key: key, Value: value}
 			}
 		}
