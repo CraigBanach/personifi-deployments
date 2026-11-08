@@ -96,6 +96,28 @@ Windows diagnostics and failed GitHub runs are not release evidence.
 
 ## Public verification and rollback
 
+### Verification failure and storefront-only rollback
+
+Promotion `ce2d45e77c3c5137f881e7f04fb4fb8eaade711f` initially passed
+three consecutive exact-digest/public health checks. Follow-up price checks
+then encountered intermittent public HTTP 503 `no available server` responses.
+Nomad reported a running, healthy new storefront with no task restarts and
+an unchanged backend allocation. Independent Node/curl requests also reproduced
+an intermittent 503, so this was not dismissed as a PowerShell-client issue.
+
+The managed rollout's Nomad and Traefik storefront probes both render `/gb`
+every five seconds with three-second timeouts. The uncached price-bearing
+homepage queries may make that probe path exceed its budget; this is a
+hypothesis pending direct timing/probe evidence, not an established root cause.
+No health-check bypass or resource change was made to hide the failure.
+
+At 06:16:58 UTC the operator-authorized recovery procedure selected the previous
+storefront digest through a new GitOps rollback commit. Backend digest, all
+runtime flags, migration receipt and customer-release hold remain unchanged.
+The new image stays published and its successful isolated validation evidence
+is retained, but the price-cache fix must not be described as successfully
+released. Post-rollback stability verification is required.
+
 After GitOps reconciliation, require both exact expected image digests, API
 health and `/gb` to pass three consecutive uncached checks. Verify storefront
 source is the frozen SHA and backend source/digest/allocation is unchanged.
