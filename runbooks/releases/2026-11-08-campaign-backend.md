@@ -9,7 +9,7 @@ it does not replace the normal protected workflow.
 - Frozen main source: `ddad9aa8339fb284b4a86582347f8d021655284a`.
 - Canonical LF source archive SHA-256:
   `518931fa9ce12ded7564a9151fc19c5fdd7e375a5ea9b7843fbaa47469dac4bc`.
-- Current backend/rollback source: `f43ca218b96b59a35763d2c1384a87c47e23be6d`;
+- Initially observed backend source (superseded by the preceding main release): `f43ca218b96b59a35763d2c1384a87c47e23be6d`;
   digest `sha256:4d64989cd6a9920eface8b303b3c03689d12e077b4258c6edd821a7540b8ebfd`.
 - Preserve storefront source `ff0e3d1715ff5319218074ef2ef71bca5e487e12` and
   digest `sha256:cfddf8b5eb576a67fc2ae368e09ec02154aa525d72891c3996cad36236270aae`.
@@ -71,3 +71,38 @@ promotion. New backend: ghcr.io/craigbanach/tcg-store-backend@sha256:ccdf43a77bc
 live source; this is not a source rollback. Storefront image and runtime flags
 are preserved. This task's Cardmarket maintenance drain acknowledged zero
 active jobs before submission. Final rollout verification is still required.
+
+## Verified live outcome — 18:24 UTC
+
+Promotion commit: `f0cf04b72c482b727b6af4c183f8075bfb262054`.
+Nomad deployment `0d24c540` completed successfully, job version 308.
+Backend allocation `78ff2537-1f27-5b47-300b-f9cfc206ea86` serves the exact
+validated source and new digest. Storefront allocation
+`1d3d510e-cc1d-9e2d-293d-42b0f2f00bc2` and its image remain unchanged.
+
+Both public image digests, backend source, API health and storefront `/gb`
+passed 12 consecutive uncached checks. Direct read-only inspection confirmed
+the five live campaign modules have the same SHA-256 hashes as the packaged
+image proof: curation actions, calculated-price reader, release review,
+renderer and outcome reporting. No provider calls or database connections were
+made by that compiled-source inspection.
+
+At 18:24:43 UTC the matching task-specific maintenance resume acknowledged
+`draining=false`, with zero active jobs at that instant. Ordinary worker claims
+are resumed; no other session's maintenance request was taken over.
+
+At 18:24:48 UTC fresh anonymous UK/GBP Store API reads verified all six exact
+variant prices: Crimson Vow £147.99, Zendikar £164.99, LOTR £314.99, Journey
+Together £214.99, Destined Rivals ETB £99.99 and Prismatic Evolutions ETB
+£139.99. These reads made no cart, payment, inventory or campaign changes.
+
+The immediately preceding backend/rollback image is
+`ghcr.io/craigbanach/tcg-store-backend@sha256:de562b91acae77f0390a43da8dfdbecb620e198c44b162b3031d2f3c6aa5c545`,
+source `7296a1d58e712bcf86edc3fe1ed1e96053a202c9`. The earlier f43 image is
+historical context, not the immediate rollback target. No schema rollback is
+authorized. The campaign delta from the preceding source adds no migrations.
+
+Deployment is complete. No campaign curation, audience export/attachment,
+contact membership change, approval or send was performed by this rollout.
+Live Brevo state/content and fresh exact product/audience review remain required
+before the separately authorized campaign release can proceed.
