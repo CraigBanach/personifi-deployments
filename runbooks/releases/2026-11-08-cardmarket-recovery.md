@@ -89,4 +89,50 @@ Hall alone: admission `chcmrecover_01M6Y50FVV4Z6MBX31KDM60MZN`, live job
 `chcmbl_01M6VSEYX2BVH9KMF4EYMQJ93M`. The original fence is preserved.
 This is admission, not verified publication. No other item has been admitted.
 
-Status: backend live; Hall live result and independent verification pending.
+## Hall verified — 18:02 UTC
+
+Hall live job completed at 18:01:26 UTC, submitted with no uncertainty reason.
+Independent scoped stock read `chcmjob_01M6Y550V3PHJVP9XP28S4VCYH` completed at
+18:01:57 UTC and bound one article. Although partial (one page, two articles),
+it establishes positive presence, not absence elsewhere.
+
+Verified article `2199341523`: exact product `267150`, Game Day Set Promos,
+English/NM, foil, absolute quantity one, price 102 pence. The active binding uses
+that article and the original variant. Original attempt equality was verified
+against the immutable admission snapshot, using the same driver Date-to-ISO
+serialization as admission/claim. An initial diagnostic used PostgreSQL
+`to_jsonb` timestamp text and falsely reported inequality; canonical comparison
+found zero changed fields. No source mutation or fence reset occurred.
+
+Hall recovery is verified. Release Promos fresh preview is queued separately;
+further recovery remains sequential, one-use and independently verified.
+
+Status: backend live; 1 of 35 recoveries verified, 34 not yet admitted.
+
+## Release Promos pre-admission refusal
+
+Fresh six-item corrected-foil preview `chcmjob_01M6Y59BJ83GCVGHSFT2EWQB0C`
+passed at 18:05:24 UTC. The first explicit admission (Deathbringer Regent,
+source `chcmbl_01M6SJ75T435DVA5JVRDHKY2D2`) refused before creating an admission
+or live job. Read-only inspection confirmed zero admission rows for that source.
+
+The normal resolver returned `Launch Party & Release Event Promos`, whereas the
+native exact-product preview used `Release Promos`. Exact-control comparison
+correctly refused that disagreement. Do not override it or reuse the preview as
+live authority. Six exact product routes, not a whole-series alias, were added
+to the normal resolver and passed 23 resolver tests plus TypeScript.
+
+Minimal next release source `b7fa3c0bf68101747b173a1ff0f47081983a9040` is the
+already-live backend plus only those two route/test files. It is retained in
+application main ancestry by tree-preserving merge `549247b1`, after the ordinary
+task cherry-pick `502d16d8`. No feature branch was pushed as a production substitute.
+This avoids deploying intervening unrelated eBay/marketing/purchasing changes.
+Full isolated non-GHA validation and image build are running for the exact
+minimal source. Fresh order/preview evidence will be required after deployment;
+the original census can be reused only while within its unchanged two-hour limit.
+
+The first minimal-release validation attempt was refused by the shared VM lock
+(`BlockingIOError: Resource temporarily unavailable`) before running checks.
+It is not validation evidence. The same exact archive is queued using bounded
+blocking acquisition of that lock (one-hour wait ceiling), without interrupting
+the other session or allowing concurrent validation VMs.
