@@ -74,4 +74,19 @@ backend/storefront identity, API-health and `/gb` checks; inspect the live recov
 table/guards before any operational admission. Record deployment and recovery
 outcomes separately below.
 
-Status: validated; promotion and live recovery verification pending.
+## Live deployment and first admission
+
+GitOps promotion: `c8a90b8`. At 17:57:35 UTC, three consecutive uncached checks
+verified exact backend source/digest, unchanged storefront source/digest, API
+health and `/gb`. Direct database inspection confirmed the recovery table and
+all three enabled immutable/source/job guards, zero existing admissions and the
+unchanged original Hall `verification_pending` attempt. Matching maintenance
+resume acknowledged `draining=false`.
+
+After the production/capacity/evidence checks, the operator-only command admitted
+Hall alone: admission `chcmrecover_01M6Y50FVV4Z6MBX31KDM60MZN`, live job
+`chcmjob_01M6Y50FVVMJGNTHH5PMS2GQC4`, original attempt
+`chcmbl_01M6VSEYX2BVH9KMF4EYMQJ93M`. The original fence is preserved.
+This is admission, not verified publication. No other item has been admitted.
+
+Status: backend live; Hall live result and independent verification pending.
