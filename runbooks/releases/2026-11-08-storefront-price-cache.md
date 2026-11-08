@@ -108,15 +108,29 @@ an intermittent 503, so this was not dismissed as a PowerShell-client issue.
 The managed rollout's Nomad and Traefik storefront probes both render `/gb`
 every five seconds with three-second timeouts. The uncached price-bearing
 homepage queries may make that probe path exceed its budget; this is a
-hypothesis pending direct timing/probe evidence, not an established root cause.
-No health-check bypass or resource change was made to hide the failure.
+hypothesis for the underlying rendering cost. Sanitized Traefik diagnostics
+confirmed **39 storefront probe timeouts**, from 06:11:59 to 06:19:04 UTC,
+explaining the service's health-check flapping. No raw customer/access logs were
+returned. No health-check bypass or resource change was made to hide the failure.
 
 At 06:16:58 UTC the operator-authorized recovery procedure selected the previous
 storefront digest through a new GitOps rollback commit. Backend digest, all
 runtime flags, migration receipt and customer-release hold remain unchanged.
 The new image stays published and its successful isolated validation evidence
 is retained, but the price-cache fix must not be described as successfully
-released. Post-rollback stability verification is required.
+released.
+
+Rollback commit: `4a27227bc9c030f69d4d49c3d272a3b370573958`. Nomad deployment
+`d315cbb7` completed successfully. The previous storefront source/digest was
+read back publicly and both digest endpoints, API health and `/gb` passed
+12 consecutive checks. Restored storefront allocation: `dcf8c200`; backend
+allocation remains `e14abdfc`, unchanged throughout promotion and rollback.
+The rollout/rollback did not run a migration or restart backend/Redis.
+
+The price fix is **not live**. A proposed follow-up is to use the lightweight
+uncached `/api/release` for storefront service probes while retaining `/gb`
+and the exact-digest/API-health business checks as promotion verification.
+That health-check change has not been applied and needs explicit review/approval.
 
 After GitOps reconciliation, require both exact expected image digests, API
 health and `/gb` to pass three consecutive uncached checks. Verify storefront
