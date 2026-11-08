@@ -36,4 +36,14 @@ Use the existing serialized GitOps managed migration batch and rollout. A migrat
 
 Promotion is not complete until both public release digests, API health and storefront `/gb` pass at least three consecutive checks, the live backend reports the exact source, and the compiled fixes and unchanged 35 verification-pending attempts are checked. Preserve the storefront image throughout.
 
-Status: validated artifact; promotion/public verification pending.
+## Verified outcome
+
+Promotion commit: `ed69f6d51dd7d8f686e3c1164a1116da88e17f05`; production host read back this commit.
+
+At 16:50:46 UTC, three consecutive uncached checks passed for the exact backend digest/source, the preserved storefront digest/source, backend `/health`, and storefront `/gb`.
+
+At 16:51:07 UTC, direct inspection of the running backend confirmed source `f43ca218b96b59a35763d2c1384a87c47e23be6d`, compiled finish preservation, verified catalogue routes and both permanent fences. Exactly 35 original live `verification_pending` unbound attempts remain, unchanged in count. Worker 1.1.37 was healthy while still drained. The matching maintenance resume then acknowledged `draining=false`, with zero active jobs at that instant.
+
+No live recovery was admitted, no original fences were reset, and no storefront rebuild or setting/feature activation occurred. The release is live and routine worker claims are resumed. The separate immutable recovery-admission mechanism and fresh evidence remain prerequisites to retrying the 35 uncertain listings.
+
+The protected on-host migration receipt file was not readable by the diagnostic user; no permissions were weakened to read it. Public/live-image verification is recorded above; do not describe that diagnostic as independent receipt inspection.
