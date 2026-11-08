@@ -49,4 +49,21 @@ uncertain submissions have not been retried. Deployment does not renew old
 evidence, create an admission or reset a fence. Refresh census/order/preview
 evidence as necessary before subsequent one-use admissions.
 
-Status: validated, promotion/live verification pending.
+## Verified live outcome
+
+GitOps promotion commit `886fa17` selected the digest above. At 19:31:20 UTC,
+three consecutive uncached checks passed for the exact backend SHA/digest,
+unchanged storefront SHA/digest, API health and storefront `/gb`.
+
+At 19:31:35 UTC, direct inspection of the running backend confirmed source
+`168db93f1da6a155e12446576a19f8c0f7ee7ab9`, all six `Release Promos` routes and
+unchanged unknown-ID resolution. Matching worker maintenance resume acknowledged
+`draining=false`, zero active jobs at that instant. eBay-price-sync source and
+the storefront remain preserved.
+
+No further live recoveries were admitted during deployment. Prior evidence
+expired; a fresh full-census/all-status-order reconciliation was started after
+resuming claims. Hall remains the only previously verified recovery. Do not use
+the old preview or change freshness limits to continue the remaining 34.
+
+Status: deployed and independently verified; routine Cardmarket claims resumed.
