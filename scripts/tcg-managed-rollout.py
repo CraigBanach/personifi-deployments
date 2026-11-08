@@ -41,7 +41,10 @@ def jobs(document):
         }
     groups.append(frontend_group)
     backend.setdefault("Env", {})["MEDUSA_MIGRATIONS_MANAGED"] = "true"
-    for task, port, path in [(backend, "backend", "/health"), (storefront, "storefront", "/gb")]:
+    # Service probes must not render a price-bearing homepage every five seconds:
+    # uncached catalog work can exceed the probe budget and flap healthy routing.
+    # Public rollout verification still requires /gb, API health and both digests.
+    for task, port, path in [(backend, "backend", "/health"), (storefront, "storefront", "/api/release")]:
         task["Services"] = [{
             "Name": f'{service["ID"]}-{port}', "Provider": "nomad", "PortLabel": port,
             "Checks": [{"Name": "http-ready", "Type": "http", "Path": path,

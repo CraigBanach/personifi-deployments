@@ -130,7 +130,32 @@ The rollout/rollback did not run a migration or restart backend/Redis.
 The price fix is **not live**. A proposed follow-up is to use the lightweight
 uncached `/api/release` for storefront service probes while retaining `/gb`
 and the exact-digest/API-health business checks as promotion verification.
-That health-check change has not been applied and needs explicit review/approval.
+That health-check change was not applied as part of the initial rollout or rollback.
+
+### Approved probe-only correction and retry
+
+The operator subsequently explicitly approved changing only storefront service
+probes to `/api/release`, retaining `/gb`, API health and both exact digests as
+public rollout gates, and retrying the same validated image. No app source or
+image rebuild is involved; the full exact-SHA validation above remains applicable.
+
+`scripts/tcg-managed-rollout.py` changes only the two storefront probe paths:
+the Nomad HTTP service check and the Traefik active health check. Both keep
+their five-second interval and three-second timeout. Backend `/health`,
+backend/Redis group, resource reservations, migration definition, secrets and
+runtime settings are unchanged. `/api/release` is an uncached lightweight
+identity/process response, not a catalog render; actual business-page readiness
+is still separately required by the unchanged public rollout verifier.
+
+All 19 isolated Linux GitOps tests passed, including new assertions that the
+homepage/API-health/exact-digest gates remain enforced. A separate structural
+comparison against the previously committed transformer proved the backend/
+Redis group and migration JSON are identical, and that the complete service
+JSON differs only in those two storefront probe-path fields.
+
+The retry selects the same storefront digest at 06:35:55 UTC. Require sustained
+public checks, the saved and fresh-session price checks, successful Nomad
+deployment and no new storefront probe-timeout logs before calling it complete.
 
 After GitOps reconciliation, require both exact expected image digests, API
 health and `/gb` to pass three consecutive uncached checks. Verify storefront

@@ -1,5 +1,6 @@
 import copy
 import importlib.util
+import io
 import json
 from pathlib import Path
 import runpy
@@ -12,6 +13,9 @@ SCRIPTS = Path(__file__).resolve().parents[1]
 spec = importlib.util.spec_from_file_location("managed", SCRIPTS / "tcg-managed-rollout.py")
 managed = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(managed)
+ready_spec = importlib.util.spec_from_file_location("readiness", SCRIPTS / "wait-for-tcg-release.py")
+readiness = importlib.util.module_from_spec(ready_spec)
+ready_spec.loader.exec_module(readiness)
 
 
 def fixture():
@@ -69,6 +73,50 @@ class ManagedRolloutTests(unittest.TestCase):
         self.assertNotIn("Services", task)
         self.assertEqual(task["Config"]["command"], "pnpm")
         self.assertEqual(task["Config"]["args"], ["predeploy"])
+
+    def test_only_storefront_probes_use_lightweight_uncached_release_endpoint(self):
+        original = fixture()
+        service, _ = managed.jobs(original)
+        backend = service["Job"]["TaskGroups"][0]["Tasks"][0]
+        storefront = service["Job"]["TaskGroups"][1]["Tasks"][0]
+        for task, route, name in [(backend, "/health", "api"), (storefront, "/api/release", "storefront")]:
+            self.assertEqual(task["Services"][0]["Checks"], [{
+                "Name": "http-ready", "Type": "http", "Path": route,
+                "Interval": 5_000_000_000, "Timeout": 3_000_000_000,
+            }])
+            labels = task["Config"]["labels"][0]
+            prefix = f"traefik.http.services.tcg-medusa-{name}-production.loadbalancer.healthcheck"
+            self.assertEqual(labels[prefix + ".path"], route)
+            self.assertEqual(labels[prefix + ".interval"], "5s")
+            self.assertEqual(labels[prefix + ".timeout"], "3s")
+            before = next(t for t in original["Job"]["TaskGroups"][0]["Tasks"] if t["Name"] == task["Name"])
+            for field in ["Resources", "Templates"]:
+                self.assertEqual(task[field], before[field])
+
+    def test_public_rollout_still_requires_homepage_api_health_and_exact_digests(self):
+        backend = "sha256:" + "a" * 64
+        storefront = "sha256:" + "b" * 64
+        urls = ["https://api.freesplash.co.uk/release", "https://freesplash.co.uk/api/release",
+                "https://api.freesplash.co.uk/health", "https://freesplash.co.uk/gb"]
+        class Response(io.BytesIO):
+            def __init__(self, digest, status=200):
+                super().__init__(json.dumps({"image_digest": digest}).encode())
+                self.status = status
+        class Opener:
+            def __init__(self, failed_url=None, wrong_digest=False):
+                self.calls = []
+                self.failed_url, self.wrong_digest = failed_url, wrong_digest
+            def open(self, request, timeout):
+                self.calls.append((request.full_url, timeout))
+                digest = backend if request.full_url == urls[0] else storefront
+                return Response("sha256:" + "c" * 64 if self.wrong_digest else digest,
+                                503 if request.full_url == self.failed_url else 200)
+        opener = Opener()
+        self.assertTrue(readiness.ready(backend, storefront, opener))
+        self.assertEqual(opener.calls, [(url, 10) for url in urls])
+        for url in urls:
+            self.assertFalse(readiness.ready(backend, storefront, Opener(failed_url=url)))
+        self.assertFalse(readiness.ready(backend, storefront, Opener(wrong_digest=True)))
 
     def test_frontend_change_does_not_change_backend_group(self):
         first = fixture()
