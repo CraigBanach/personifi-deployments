@@ -127,7 +127,7 @@ read back publicly and both digest endpoints, API health and `/gb` passed
 allocation remains `e14abdfc`, unchanged throughout promotion and rollback.
 The rollout/rollback did not run a migration or restart backend/Redis.
 
-The price fix is **not live**. A proposed follow-up is to use the lightweight
+At that rollback stage the price fix was **not live**. The proposed follow-up was to use the lightweight
 uncached `/api/release` for storefront service probes while retaining `/gb`
 and the exact-digest/API-health business checks as promotion verification.
 That health-check change was not applied as part of the initial rollout or rollback.
@@ -156,6 +156,44 @@ JSON differs only in those two storefront probe-path fields.
 The retry selects the same storefront digest at 06:35:55 UTC. Require sustained
 public checks, the saved and fresh-session price checks, successful Nomad
 deployment and no new storefront probe-timeout logs before calling it complete.
+
+### Final verified outcome — 06:45 UTC
+
+The retry is **live and verified**. GitOps promotion:
+`095097868330a015fed779fea8a809457239cc6b`. Nomad deployment `4d906c16`
+completed successfully. Storefront source is the frozen `ff0e3d17...` and the
+public digest is the new `cfddf8b5...` image listed above. Allocation `1d3d510e`
+started at 06:38:10 UTC and has zero restarts. The backend remains on source
+`c44fdd07...`, digest `04710fc8...`, allocation `e14abdfc`, with its original
+7 November 16:00:28 UTC task start and zero restarts.
+
+- Both exact image digests, API health and the actual `/gb` business page passed
+  12 consecutive uncached public checks.
+- Live Nomad inspection confirms storefront probes use `/api/release`, backend
+  probes still use `/health`, and CPU/memory reservations are unchanged.
+- Sanitized Traefik diagnostics show **no new storefront probe-timeout logs**
+  since the retry preparation at 06:35:55 UTC, including after browser verification.
+- A rendered-browser audit verified all **18** combinations of three products,
+  three surfaces (detail/buy controls, listing card, related card), and two
+  anonymous contexts (the saved pre-rollout cache cookie and a distinct fresh
+  session). Zendikar is £164.99, LOTR £314.99 and Journey Together £214.99 on
+  every tested surface. Journey's related card was verified on the Prismatic
+  Evolutions ETB page; the two Magic boxes were verified on each other's pages.
+- A final uncached Store API read with the live storefront's UK/GBP region and
+  sales-channel key confirms those exact calculated amounts without price-list
+  overrides. Authenticated customer-group pricing was not part of this anonymous audit.
+- The production browser audit blocked every non-GET/HEAD request and external
+  instrumentation. It created no cart, payment, order, subscription or email.
+
+The raw-HTML audit could not associate prices streamed outside their original
+card anchors; empty parser results were not accepted as evidence. The rendered
+DOM audit above supersedes that parser for listing/related-card verification.
+The actual price-edit, basket and checkout proof remains the successful isolated
+Linux test, including the explicit persisted-old-cart/recalculation boundary.
+
+Customer-release/email holds remain in force. This successful one-off does not
+authorize a campaign, change subscriptions, enable the later backend inventory
+work, or replace normal protected promotion for future releases.
 
 After GitOps reconciliation, require both exact expected image digests, API
 health and `/gb` to pass three consecutive uncached checks. Verify storefront
