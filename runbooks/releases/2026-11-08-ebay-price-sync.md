@@ -63,3 +63,22 @@ ddad9aa8339fb284b4a86582347f8d021655284a, image ghcr.io/craigbanach/tcg-store-ba
 ghcr.io/craigbanach/tcg-store-backend@sha256:18e3f7861fcd311fa6264b245b6c5a1862a4bd4cb247ed9d853b14e6dfa768d3. The live source is an ancestor of the selected source; no source
 rollback is performed. Storefront and runtime flags are preserved. This task's
 worker drain acknowledged zero active jobs. Final rollout verification is pending.
+
+## Verified production outcome
+
+At 2026-11-08T18:49:59.509Z, three consecutive uncached checks confirmed:
+- backend source a0ef49bdb87946d202c54266fb0b0c12a9dbb602;
+- backend digest sha256:18e3f7861fcd311fa6264b245b6c5a1862a4bd4cb247ed9d853b14e6dfa768d3;
+- unchanged storefront digest sha256:cfddf8b5eb576a67fc2ae368e09ec02154aa525d72891c3996cad36236270aae;
+- API health and storefront /gb HTTP 200.
+
+Nomad deployment aa7b4f86-e8d3-f42a-8435-b764230d2d5e, job version 309,
+was successful at 2026-11-08T18:50:08.1405598Z. Both required allocations and their
+backend/Redis/storefront tasks were healthy and running. This task's Cardmarket
+maintenance drain was resumed at 2026-11-08T18:50:14.2016770Z, draining=false.
+
+Promotion commit: d788ab155633f390ce2a340f709815539c14c1aa. No GitHub Actions run, config/catalog
+apply, runtime activation change or manual marketplace listing mutation was used.
+Scheduled eBay repricing is enabled by the deployed code, subject to its existing
+active configuration, scope, override and safety gates. Deployment verification
+is not a claim that every remote listing has already been visited/repriced.
