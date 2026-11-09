@@ -54,3 +54,25 @@ Redis containers and migration receipt. Public rollout verification is pending.
 If rollback is required, use a new GitOps commit restoring only the previous
 storefront digest and appropriate metadata. Never reset the database, hot-patch
 containers or overwrite a concurrent operator's release.
+
+## Verified live outcome
+
+Promotion commit: 2638615c7a404a6d8b13bb870534a24b93cdfd16.
+At 2026-11-09T17:34:50.845Z, twelve consecutive uncached checks verified the
+exact new storefront source/digest, preserved backend source/digest, backend
+health and storefront /gb response, all HTTP 200.
+
+Read-only production browser verification passed at 2026-11-09T17:33:52.080Z
+at 384x694, 360x640 and desktop 1440x1000: all filter types discoverable;
+searchable dedicated set picker without nested scrolling; set persisted through
+price submission; rarity/finish accessible; live result count; clear-all;
+Escape/focus restoration; footer clear of filter headings; desktop sidebar
+retained. No page errors and no non-GET/HEAD requests sent; one such request was
+blocked by the read-only browser harness. Screenshots and JSON evidence retained
+in the operator's mobile-filters-release-20261109 directory.
+
+Post-rollout runtime inspection confirmed the backend and Redis container IDs,
+start times and restart counts are unchanged from the fresh prepromotion baseline;
+the migration receipt is unchanged. Chat remains outside the release and disabled
+in production. No backend restart, migrations or business-data writes were
+performed by this storefront release.
