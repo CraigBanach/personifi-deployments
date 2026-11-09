@@ -61,6 +61,75 @@ effect replay guards are intentionally unchanged. Publication revalidates full
 native evidence on every read; drift re-quarantines, and later independent
 deferrals sharing the inventory still veto every alias.
 
+## Live rollout verified
+
+Three consecutive exact public backend/storefront release and health checks
+passed at 17:02:00 UTC. Live backend `fb13b7cc93d5bcb2f1fb7f4f70f6e21c44a18aec`,
+digest `sha256:5c9f69e92a8de42795c54ba491ea37ab4b686308442f2203d390ee2f4e64f981`.
+Storefront source/digest remain unchanged. The task-owned worker drain was resumed
+with zero active jobs acknowledged. First release previews returned `busy` because
+scheduled eBay work held the account coordinator; no receipt or stock write occurred.
+Operational previews now queue on the exact same `ebay-runtime:<connection>`
+session advisory key, with a dedicated connection and a ten-minute lock timeout,
+never bypassing or terminating the scheduled owner.
+
+The superseded c859cc59 candidate's full validation also exposed its already-known
+SWC inline-type issue in crash-worker startup. It was never promoted. The corrected
+fb13b7cc candidate passed all six phases, 4,492 unit tests, 632 stock proofs and
+143 browser checks without retries; two pre-existing TODO proofs remain explicit.
+
+## Applied inventory releases — 17:13 UTC
+
+All three fresh, account-verified previews passed. Apply repeated the authenticated
+fulfilled-order read and database prerequisites, then appended these exact receipts:
+
+| SKU | Kind | Retained receipt |
+| --- | --- | --- |
+| MTG-FRA-11-0-14-NORMAL-NM-EN | native_dispatch | chebaystockrelease_01M70MSAVHGJTMET412Q16TXAX |
+| MTG-VOW-DB-EN | native_dispatch | chebaystockrelease_01M70MSCP0DGGZ85CJAH0REWHQ |
+| MTG-FIN-CMD-CB-EN | owner_restock | chebaystockrelease_01M70MSEJZE5KERGMTACN3KC4F |
+
+Release preview fingerprints respectively:
+`4e3088e42aff4eb5a524729a64a71610e33f98249db995d80b31f51b05928231`,
+`37604245408b08ba3b5a783ea917cfff55fafed240dc1670898c72a9cfeabe55`,
+`6c8b7043f19a899bcd028f21db9b58bcfd99330b59e4aaa422c6989ec5e76760`.
+Each release wrote neither provider state nor native stock. Independent SQL after
+application verified all three release predicates true; current availability
+remains Heartwood=2, Crimson Vow=32, Counter Blitz=2. Both native originals retain
+completed exact shipment effects and zero original reservations. Historical
+deferrals, blocked observations and replay guards remain intact.
+
+## Stock propagation / separate legacy-listing blockers
+
+At 17:13:40 UTC the ordinary durable stock engine synchronized Crimson Vow to 32;
+fresh eBay GET at 17:16:32 verified published offer `306849191011`, live item
+`137830532863`, quantity 32. No manual absolute stock adjustment or direct provider
+write bypass was used. Native shelf stock was not decremented again.
+
+Heartwood and Counter Blitz cannot be restored by a quantity push: neither has
+a current reviewed live stock binding. Canonical discovery now reports
+`migrated_binding_removed_no_lifecycle_writes` rather than order quarantine.
+Exact fresh provider evidence:
+
+- Heartwood `289531663011` / `137799914813`: **UNPUBLISHED**, listing status
+  **OUT_OF_STOCK**, quantity 0. Native availability 2. The writer deliberately
+  accepts PUBLISHED/OUT_OF_STOCK replenishment, not an UNPUBLISHED offer.
+- Counter Blitz `266739296011` / `137741068381`: **UNPUBLISHED**, listing status
+  **ENDED**, quantity 2. Native availability 2; its old stock link is retired.
+
+Both identities belong to the retained pre-cutover enrollment cohort, not the
+native stockout-end/relist lifecycle. The Nov 2 adoption policy explicitly expires
+nonlive legacy bindings without relisting. A reviewed legacy-restock transition
+is required to create/relist these safely, preserve exact predecessor provenance,
+establish current native stock/order coverage and obey ordinary publication quota.
+Do not clear enrollment, erase old links, synthesize native withdrawal receipts,
+reinsert an expired binding or retry publication outside the listing journal.
+No such extra relisting was performed in this order-protection repair.
+
+Listing-status readback was refreshed using canonical discovery/planning. Crimson
+Vow has a separate `medusa_listing_drift` content proposal; its quantity is already
+verified at 32 and no content was overwritten by this repair.
+
 ## Submitted promotion
 
 At 2026-11-09T16:59:06.2801115Z the manifest and public endpoints agreed. Previous backend: fd553ebc30f7f3dc66e728b48ee0df39787a5190, ghcr.io/craigbanach/tcg-store-backend@sha256:4ddb1398ef5ad82fcba1ac77469654d20041e45cc12d1e823acb63e503ced7f7. New backend: ghcr.io/craigbanach/tcg-store-backend@sha256:5c9f69e92a8de42795c54ba491ea37ab4b686308442f2203d390ee2f4e64f981. Storefront and runtime flags preserved. Task-owned drain acknowledged zero active jobs. Final public rollout verification pending.
