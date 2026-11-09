@@ -85,6 +85,21 @@ same-ID link was enriched automatically to category `Booster-Boxes`, native path
 Publication is being observed through the normal scheduled pipeline; the search
 itself made no listing writes and is not counted as publication evidence.
 
+The normal scheduled Unfinity publication subsequently returned
+`verification_pending` in job `chcmjob_01M6YSYXB5FH8JRV3DM2JDRCF9`. Its retained
+follow-up stock read `chcmjob_01M6YT3SM6A29C20Q3Y1MB01XX` completed without a
+positive box match. The attempt remains unbound and fenced: no retry, deletion,
+status reset or inference of absence is authorised by that partial read. A
+separately tested sealed-subtitle read-back repair and stricter guarded binding
+are documented in `2026-11-09-cardmarket-sealed-readback.md`.
+
+Worker-only subtitle correction `1.1.39` (commit
+`887a139163a0df25c89dab3bd2ee0808ab906bcf`) passed all 86 worker safety tests
+and was deployed through the same drain/versioned-directory procedure. Its
+healthy resumed heartbeat was verified at `2026-11-09T00:17:17.735Z`. The
+Unfinity submission was not retried. The backend strict-binding follow-up remains
+subject to its separate full exact-SHA validation and promotion gate.
+
 ## Submitted promotion
 
 At 2026-11-08T23:58:08.0145908Z the manifest and public release endpoints agreed. Previous backend: 168db93f1da6a155e12446576a19f8c0f7ee7ab9, ghcr.io/craigbanach/tcg-store-backend@sha256:2cf6ab9e47fb5fce1dced40a5c3aca29d3cd3d3c1a938ca0076f7ff81a0c139b. New backend: ghcr.io/craigbanach/tcg-store-backend@sha256:da9d9d7d20de45e55d4511f06660173449daf7326c03ea62a1483809a40b6bcf. Storefront and runtime flags preserved. Task-owned drain acknowledged zero active jobs. Public rollout verification subsequently passed, as recorded above.
