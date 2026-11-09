@@ -55,6 +55,36 @@ Rollback is operator-reviewed, using the actual preceding manifest digest. Never
 roll back the database or replay an uncertain listing. Keep worker claims drained
 if rollout identity or health cannot be independently confirmed.
 
+## Verified live - 9 November 2026
+
+At `2026-11-09T00:01:14.674Z`, three consecutive uncached checks confirmed:
+
+- Backend source `80cec2fa2ead7344d90d65544bd60b059ed482a2`, immutable digest
+  `sha256:da9d9d7d20de45e55d4511f06660173449daf7326c03ea62a1483809a40b6bcf`.
+- Storefront unchanged at source `ff0e3d1715ff5319218074ef2ef71bca5e487e12`,
+  digest `sha256:cfddf8b5eb576a67fc2ae368e09ec02154aa525d72891c3996cad36236270aae`.
+- Backend `/health` and storefront `/gb` returned HTTP 200.
+
+Worker `1.1.38` reported a fresh healthy heartbeat before promotion. The task-owned
+backend drain was resumed after public verification, acknowledging zero active
+jobs and `draining:false`. No GitHub Actions runs were used.
+
+The final pre-release recovery audit confirmed 35 retained admissions, 34 verified
+and bound recoveries, and all 35 original snapshots unchanged. Togetic's one-use
+admission was refused before browser delivery because its preview was 941 seconds
+old against the 900-second limit. There is no browser attempt for that admission;
+it remains spent and fenced, with no renewal, reset or replay.
+
+Post-release Unfinity catalogue discovery is read-only and pinned to box product
+`586738`. Its retained job is `chcmjob_01M6YSRJY7JKZA5EJR6ZJEMBSB`; a queued
+search is not evidence that the boxes have been mapped or published.
+
+That search subsequently succeeded with `found:1, linked:1`. The incomplete
+same-ID link was enriched automatically to category `Booster-Boxes`, native path
+`/en/Magic/Products/Booster-Boxes/Unfinity-Booster-Box`, product `586738`.
+Publication is being observed through the normal scheduled pipeline; the search
+itself made no listing writes and is not counted as publication evidence.
+
 ## Submitted promotion
 
-At 2026-11-08T23:58:08.0145908Z the manifest and public release endpoints agreed. Previous backend: 168db93f1da6a155e12446576a19f8c0f7ee7ab9, ghcr.io/craigbanach/tcg-store-backend@sha256:2cf6ab9e47fb5fce1dced40a5c3aca29d3cd3d3c1a938ca0076f7ff81a0c139b. New backend: ghcr.io/craigbanach/tcg-store-backend@sha256:da9d9d7d20de45e55d4511f06660173449daf7326c03ea62a1483809a40b6bcf. Storefront and runtime flags preserved. Task-owned drain acknowledged zero active jobs. Final public rollout verification pending.
+At 2026-11-08T23:58:08.0145908Z the manifest and public release endpoints agreed. Previous backend: 168db93f1da6a155e12446576a19f8c0f7ee7ab9, ghcr.io/craigbanach/tcg-store-backend@sha256:2cf6ab9e47fb5fce1dced40a5c3aca29d3cd3d3c1a938ca0076f7ff81a0c139b. New backend: ghcr.io/craigbanach/tcg-store-backend@sha256:da9d9d7d20de45e55d4511f06660173449daf7326c03ea62a1483809a40b6bcf. Storefront and runtime flags preserved. Task-owned drain acknowledged zero active jobs. Public rollout verification subsequently passed, as recorded above.
