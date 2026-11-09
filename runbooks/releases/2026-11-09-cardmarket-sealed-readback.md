@@ -46,6 +46,30 @@ Unfinity remains verification-pending unless independent exact positive evidence
 is obtained. Neither this source repair nor a normal scheduled job can renew,
 reset, delete or replay that original submission.
 
+## Verified live - 9 November 2026
+
+At `2026-11-09T00:48:03.369Z`, three consecutive uncached public checks
+confirmed backend source `28f97860cf6386cdc9783724b31dfbc8bf110328` and digest
+`sha256:b492abbfe8f5ca0cec15f0c27dd08b28b848a5d42825942e410f98f81e1b4b5d`.
+The storefront source/digest remained unchanged, and backend `/health` and
+storefront `/gb` returned HTTP 200. This completes the pending rollout verification.
+
+The owning drain was resumed only after those checks. Final read-only safety
+audit at `2026-11-09T00:48:22.410Z` passed: worker 1.1.39 healthy and not drained,
+35 original recovery snapshots unchanged, 34 recoveries verified and bound, and
+one retained pre-browser refusal. No source evidence, admission or fence reset.
+
+Unfinity's correct box mapping remains saved, but submission
+`chcmjob_01M6YSYXB5FH8JRV3DM2JDRCF9` is still unbound / verification_pending,
+with no exact positive article observation. It has not been replayed. Deployment
+completion is not represented as completion of that product's publication.
+
+Final validation: 4151 backend tests, 619 stock-safety cases passed exactly once,
+139 browser checks with no failures/flaky retries, plus 58 disposable PostgreSQL
+and 86 worker safety tests. GitHub Actions were not used. The first registry push
+timed out publishing its manifest; only publication of the same retained,
+identity-checked image was retried, not the source build or a production action.
+
 ## Submitted promotion
 
 At 2026-11-09T00:44:09.4411804Z the manifest and public release endpoints agreed. Previous backend: 80cec2fa2ead7344d90d65544bd60b059ed482a2, ghcr.io/craigbanach/tcg-store-backend@sha256:da9d9d7d20de45e55d4511f06660173449daf7326c03ea62a1483809a40b6bcf. New backend: ghcr.io/craigbanach/tcg-store-backend@sha256:b492abbfe8f5ca0cec15f0c27dd08b28b848a5d42825942e410f98f81e1b4b5d. Storefront and runtime flags preserved. Task-owned drain acknowledged zero active jobs. Final public rollout verification pending.
