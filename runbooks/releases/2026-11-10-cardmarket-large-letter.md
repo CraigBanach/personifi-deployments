@@ -25,3 +25,9 @@ Failed or uncertain migration blocks service submission and requires inspection;
 ## Submitted promotion
 
 Submitted at 2026-11-10T11:22:06.3046614Z. Healthy rollout verification pending; image publication and manifest push alone are not success.
+
+## Verified production outcome
+
+Promotion commit: `5b9b998`. At 2026-11-10T11:25:42.568Z, three consecutive uncached checks confirmed backend source `54234d5638eaf010239f4f8a1f2513e06abc84b7` and digest `sha256:877b6ac328fcde2c7dede7f5a982bb30048fc48a63b0892d0cee2fc0fdb60fb4`, the unchanged storefront source/digest above, and HTTP 200 for backend health and storefront `/gb`.
+
+At 2026-11-10T11:25:51Z Nomad deployment `e7d398fb-8293-f552-44e6-af8266d9d443`, job version 317, was successful. Backend, Redis and storefront tasks were running with zero restarts in healthy allocations. This task's maintenance drain was then resumed successfully: `draining=false`, zero active jobs at acknowledgement. No order postage retry or dispatch was performed.
