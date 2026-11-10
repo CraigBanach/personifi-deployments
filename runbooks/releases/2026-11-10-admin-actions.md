@@ -25,3 +25,11 @@ Failed or uncertain migration blocks service rollout and requires inspection; no
 ## Submitted promotion
 
 Submitted at 2026-11-10T13:27:51.5326549Z. Healthy rollout verification pending; image publication and manifest push alone are not success.
+
+## Verified rollout
+
+Promotion commit: 94b45b93fcdd7e33996f8a16398c20fce67b2e00. At 2026-11-10T13:31:51.788Z, three consecutive public checks confirmed the exact new backend digest/source, unchanged storefront digest/source, HTTP 200 API health and storefront /gb. Nomad deployment 9af03585 completed successfully with both desired groups healthy; the storefront retained allocation 9081b2bf.
+
+Read-only runtime proof at 13:32:10Z confirmed all seven Actions providers available and untruncated, all 35 original recovery snapshots unchanged, and imported order #147 present without its former blocker. Public /app/actions returned HTTP 200, unauthenticated /admin/actions correctly returned HTTP 401, and the public Actions bundle matched runtime SHA-256 9a027649f14420008ff90e2121ea820296ec0912d480091357572d758c4741df.
+
+Only this task's maintenance nonce was resumed. Follow-up proof at 13:32:30Z confirmed worker 1.1.39 healthy and not draining, all seven providers complete, and all 35 originals still unchanged. Local evidence includes live-health-verified.json, live-runtime-proof.json, public-admin-proof.json, worker-resume-result.json and live-after-resume-proof.json in admin-actions-release-20261110. Deployment verified; existing operational review items remain visible rather than being dismissed or replayed.
