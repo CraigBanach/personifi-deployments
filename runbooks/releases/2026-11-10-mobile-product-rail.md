@@ -60,3 +60,21 @@ Redis containers and migration receipt. Public rollout verification is pending.
 If rollback is required, use a new GitOps commit restoring only the previous
 storefront digest and appropriate metadata. Never reset the database, hot-patch
 containers or overwrite a concurrent operator's release.
+
+## Verified live outcome
+
+Promotion commit: `28e826f`. At 2026-11-10T11:56:04.030Z twelve consecutive
+uncached checks verified the intended storefront source/digest, preserved backend
+source/digest, backend health and storefront `/gb`, all HTTP 200.
+
+Read-only mobile Chromium touch verification passed at 2026-11-10T11:56:32.693Z
+at widths 390 and 360: vertical swipes moved the page 135px while rail scrollTop
+remained zero; horizontal swipes moved the rail 203px. Computed overflow-y was
+hidden. No page errors occurred. All non-GET/HEAD requests were blocked; no
+production business writes were performed. Screenshots and JSON evidence are
+retained in the operator's `mobile-rail-release-20261110` directory.
+
+Post-rollout runtime inspection confirmed the backend and Redis container IDs,
+start times and restart counts match the fresh prepromotion baseline; both remain
+running. The migration receipt is unchanged. No backend restart, migration or
+business-data mutation was performed by this storefront release.
