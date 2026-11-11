@@ -20,3 +20,7 @@ Changes: daily (04:30) ChatGPT product feed built a page of products at a time a
 The task-owned Cardmarket maintenance drain acknowledged zero active jobs before submission. Credentials, feature gates, configuration/catalog flags, production-data mutation setting and storefront digest are preserved. Retain this task's drain nonce until three consecutive checks prove exact backend source/digest, unchanged storefront source/digest, API health and /gb, then resume only this task's nonce. The previous immutable backend is the application-only rollback target.
 
 Submitted at 2026-11-11T15:57:01.758Z. Verified rollout remains pending; image publication or manifest push alone is not success.
+
+## Verified rollout
+
+At 2026-11-11T15:59:41Z three consecutive checks proved backend 2ee91de398fa52b18b576dce55f68f73296fed4c at sha256:51f2b5066dc3c335bf1015e585f784c37e271cd6c2953c05b27dcf995fa1bf24, unchanged storefront 245313fdf88b730f491fa3b97f60835aad28f96f at sha256:2f3c50b7f276897c7a7b572ea4402da1ff093f78515209296c5dd2f78da241d2, API health 200 and /gb 200. Nomad allocation b66e676e (job version 324) running; backend logged "Server is ready on port: 9000" at 15:59:13. This task's Cardmarket drain nonce was resumed (draining=false, active_jobs=0). The ChatGPT feed URL returns 404 as intended while CHATGPT_FEED_ENABLED is off. Schema check of Migration20261111123000 not performed in this task (production DB reads not permitted to the operator's assistant); home-server validation result to be recorded separately.
