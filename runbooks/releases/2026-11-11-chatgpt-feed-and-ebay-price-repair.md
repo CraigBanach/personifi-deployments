@@ -24,3 +24,7 @@ Submitted at 2026-11-11T15:57:01.758Z. Verified rollout remains pending; image p
 ## Verified rollout
 
 At 2026-11-11T15:59:41Z three consecutive checks proved backend 2ee91de398fa52b18b576dce55f68f73296fed4c at sha256:51f2b5066dc3c335bf1015e585f784c37e271cd6c2953c05b27dcf995fa1bf24, unchanged storefront 245313fdf88b730f491fa3b97f60835aad28f96f at sha256:2f3c50b7f276897c7a7b572ea4402da1ff093f78515209296c5dd2f78da241d2, API health 200 and /gb 200. Nomad allocation b66e676e (job version 324) running; backend logged "Server is ready on port: 9000" at 15:59:13. This task's Cardmarket drain nonce was resumed (draining=false, active_jobs=0). The ChatGPT feed URL returns 404 as intended while CHATGPT_FEED_ENABLED is off. Schema check of Migration20261111123000 not performed in this task (production DB reads not permitted to the operator's assistant); home-server validation result to be recorded separately.
+
+## Post-promotion validation
+
+Home-server validation of 2ee91de3 completed after promotion: exit 0, six phases; 105 read-only browser checks clean; stateful 37 passed, 2 skipped, 1 flaky retry (purchase-surfaces.spec.ts:10 at 1440px, add-address modal stuck on Saving after the action returned success in 78 ms; passed on retry); stock-safety proof 633 passed exactly once. Retained evidence /srv/freesplash-ci/admin/benchmark-20261111T154608Z. The strict zero-retry gate is not met; the same storefront stateful flakes recur in earlier releases (8-10 Nov) and are under investigation. The storefront image is unchanged by this release.

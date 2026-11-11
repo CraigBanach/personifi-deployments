@@ -24,3 +24,7 @@ Submitted at 2026-11-11T16:29:27.190Z. Verified rollout remains pending; image p
 ## Verified rollout
 
 At 2026-11-11T16:32:54Z three consecutive checks proved backend 32d263e0c6414395b1a2e9c9bd3b6dc3fbf475b2 at sha256:27b5ee4b7afb3461a3843086c873d83a6246666d71ffabb9ee4e6e9ada49d605, unchanged storefront 245313fd at sha256:2f3c50b7..., API health 200 and /gb 200. Nomad allocation 06f41cb7 (job version 325) running; backend logged "Server is ready on port: 9000" at 16:32:27. This task's Cardmarket drain (which waited for one active job) was resumed. Validation outcome to be recorded separately.
+
+## Post-promotion validation
+
+Home-server validation of 32d263e0 completed after promotion: exit 0, six phases; 105 read-only browser checks clean; stateful 35 passed, 2 skipped, 3 flaky retries (checkout-states.spec.ts:10 at 1440px basket count, purchase-surfaces.spec.ts:10 at 320px basket-to-checkout, quick-add.spec.ts:91 dropdown); all passed on retry. Retained evidence /srv/freesplash-ci/admin/benchmark-20261111T161618Z. The strict zero-retry gate is not met; the same storefront stateful flakes recur in earlier releases (8-10 Nov) and are under investigation. The storefront image is unchanged by this release.
