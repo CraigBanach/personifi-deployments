@@ -20,3 +20,7 @@ Changes: Migration20261111170000 adds CHATGPT_FEED_ENABLED to channel_switch_nam
 The task-owned Cardmarket maintenance drain acknowledged zero active jobs before submission. Credentials, feature gates, configuration/catalog flags, production-data mutation setting and storefront digest are preserved. Retain this task's drain nonce until three consecutive checks prove exact backend source/digest, unchanged storefront source/digest, API health and /gb, then resume only this task's nonce. The previous immutable backend is the application-only rollback target.
 
 Submitted at 2026-11-11T16:29:27.190Z. Verified rollout remains pending; image publication or manifest push alone is not success.
+
+## Verified rollout
+
+At 2026-11-11T16:32:54Z three consecutive checks proved backend 32d263e0c6414395b1a2e9c9bd3b6dc3fbf475b2 at sha256:27b5ee4b7afb3461a3843086c873d83a6246666d71ffabb9ee4e6e9ada49d605, unchanged storefront 245313fd at sha256:2f3c50b7..., API health 200 and /gb 200. Nomad allocation 06f41cb7 (job version 325) running; backend logged "Server is ready on port: 9000" at 16:32:27. This task's Cardmarket drain (which waited for one active job) was resumed. Validation outcome to be recorded separately.
