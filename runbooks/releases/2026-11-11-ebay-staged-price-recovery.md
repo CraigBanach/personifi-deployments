@@ -20,3 +20,7 @@ Changes: ec255678 lets the reconciliation retire an undispatched price request (
 The task-owned Cardmarket maintenance drain acknowledged zero active jobs before submission. Credentials, feature gates, configuration/catalog flags, production-data mutation setting and storefront digest are preserved. Retain this task's drain nonce until three consecutive checks prove exact backend source/digest, unchanged storefront source/digest, API health and /gb, then resume only this task's nonce. The previous immutable backend is the application-only rollback target.
 
 Submitted at 2026-11-11T18:20:11.299Z. Verified rollout remains pending; image publication or manifest push alone is not success.
+
+## Verified rollout
+
+At 2026-11-11T18:23:58Z three consecutive checks proved backend 6f35aaf91730e43d4e9a245a6b6370bb57ccf988 at sha256:2aa72f3196444b95ae8c1c8643665e6d77f1f3296de8aafc8e46d350fe6d523d, unchanged storefront 245313fd, API health 200 and /gb 200. This task's Cardmarket drain was resumed (active_jobs=0). No validation was run for this release.
