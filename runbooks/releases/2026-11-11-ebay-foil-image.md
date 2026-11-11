@@ -25,4 +25,15 @@ A task-owned Cardmarket maintenance drain acknowledged zero active jobs before m
 
 Keep this task's drain nonce until exact backend source/digest, unchanged storefront source/digest, API health and /gb pass three consecutive public checks and Nomad is healthy. Resume only this task's nonce. The owner-approved image refresh for variant variant_01M73PVR9Y1S9EXGX61M731YNY / existing eBay listing 137920042008 is a separate post-rollout operation; promotion itself performs no listing refresh, order replay, dispatch, physical-stock change or catalog/config script.
 
-Submitted at 2026-11-11T01:45:10.2226364Z. Verified rollout and exact image refresh remain pending; image publication or manifest push alone is not success.
+Submitted at 2026-11-11T01:45:10.2226364Z. Completion is verified below; image publication or manifest push alone was not treated as success.
+
+## Verified completion
+
+- At 01:48:57 UTC, three consecutive public checks verified backend source `a595cebf220ea706748c8a9842f28b889ea0b79c` / digest `sha256:198e7742df67099e0b2c55da5370d63440ce36b81c55bf55e545241804f340b7`, the unchanged storefront source/digest above, API health and `/gb` (all HTTP 200).
+- Nomad version 321, deployment `4edfd559`, is successful. Backend allocation `61439e91` is running/healthy; the previous allocation completed normally. The managed migration gate completed before service rollout. This task's worker-maintenance nonce was resumed successfully with zero active jobs and no remaining drain.
+- The revised Doubling Season renderer URL returned HTTP 200, `image/jpeg`, 318,721 bytes. The explicit image-refresh preview proposed only `explicit_foil_image_refresh` for the exact variant and existing item.
+- At 01:51:35 UTC the confirmed refresh completed through operation `chebayop_01M744TCWM8RFH6C0B48F23C10`, fingerprint `9e41293471754ce74898f2745a685fdb1e90b43a2fe015409a78486abfb101af`. Both provider steps were journaled and independent account-verified readback completed. The retained offer is `353179348011`, item `137920042008`, active, quantity one, seller price GBP 182.01. Description, aspects, condition and policies are unchanged. Only the image URL acquired `revision=scryfall-fix-20261111`; the product workflow retained that exact per-product revision.
+- The first CLI preview invocation rejected missing parsed arguments before target mutation; the deployed Medusa exec command was then invoked programmatically with the exact argument array. Preview and confirmation used the same revision. No uncertain operation was replayed, no direct independent eBay writer was used and no item was recreated.
+- The public eBay page refused automated retrieval with HTTP 403, so public/app cache display is not claimed. Provider acceptance and the working revised JPEG are verified; app caches may take time to update.
+
+The superseded validation attempts are retained separately. The final accepted isolated run `/srv/freesplash-ci/admin/benchmark-20261111T011527Z` passed all six phases, 4,484 backend unit tests, 632 stock-safety cases exactly once and 143 passing browser cases with zero unexpected/flaky outcomes (two existing browser skips, two stock-safety TODOs). No release gate or retry setting was weakened.
