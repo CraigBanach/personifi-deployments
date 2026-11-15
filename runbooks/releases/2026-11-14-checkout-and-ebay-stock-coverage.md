@@ -25,3 +25,7 @@ The eBay fix removes product membership in the website stock channel from native
 The task-owned Cardmarket maintenance drain acknowledged zero active jobs before submission. Credentials, feature gates, configuration/catalog flags and production-data mutation setting are preserved. Retain this task's drain nonce until three consecutive checks prove exact backend and storefront source/digests, API health and /gb, then resume only this task's nonce. Previous immutable backend and storefront images are the application-only rollback targets.
 
 Submitted at 2026-11-15T00:39:45.742Z. Verified rollout remains pending; image publication or manifest push alone is not success.
+
+## Verified rollout completion
+
+At 2026-11-15T00:43:24.520Z, three consecutive uncached checks confirmed both exact image revisions (182cd9cc38ef7ce5f419021779aa72a404e53731) and immutable digests, API health HTTP 200 and storefront /gb HTTP 200. Promotion commit: 476922e90c195ae8c5e4ddecda4ef5e73ef4118a. The task-owned CardMarket worker maintenance request was then resumed successfully (draining=false). No rollback or replay of uncertain marketplace submissions was performed.
