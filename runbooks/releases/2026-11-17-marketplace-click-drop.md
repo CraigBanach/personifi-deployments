@@ -27,4 +27,14 @@ Existing enabled scheduling may prepare eligible drafts. Carrier creation is ref
 
 No migration is introduced. No credential, tax registration, payment record, recipient setting, feature gate, config/catalog flag or storefront image is changed. No synthetic production order, manual provider dispatch, label purchase or direct stock mutation is part of verification. The task-owned Cardmarket maintenance drain acknowledged zero active jobs before submission. Preserve the nonce until three consecutive exact public backend/storefront identity and health checks and healthy Nomad rollout, then resume only this task's drain. Do not roll back the database or replay uncertain marketplace shipment calls.
 
-Submitted at 2026-11-17T15:57:14.8964916Z. Verified rollout pending; publication or GitOps push alone is not success.
+Submitted through GitOps commit `b370da14a6e7bd17c8fe035d6bbb8afc500853fb`. Publication or GitOps push alone was not treated as success. The initial push could not prompt for HTTPS credentials; the same reviewed commit was pushed using the existing GitHub CLI credential helper, with no source/manifest scope change.
+
+## Verified completion
+
+At 16:02:21 UTC, three consecutive uncached public checks verified backend source `fdcfbae1f50b25a74eabd61538a88a35e68b9700` and digest `sha256:ebe8f96c78366165ce2f81019213bef7d56fc7422a18e551e176badb5ad8e766`, unchanged storefront identity and HTTP 200 for API health and `/gb`. Nomad version 339, deployment `d824181a`, is successful; backend allocation `f5a42aab` is healthy, previous allocation completed, and managed migration allocation `8b1b9b8e` completed. No new application migration was introduced. The task-owned maintenance drain was resumed with `draining=false` and zero active jobs.
+
+Final validation: 4,811 backend unit passes, 633 stock-safety cases exactly once, 143 full-suite browser passes and 20 supplemental quick-add repetitions with retries disabled. Zero unexpected/flaky browser outcomes; the same two existing browser skips and two safety-proof TODOs remain explicit. No test was newly skipped. The additional 83-test PostgreSQL proof and all packaged-image checks passed.
+
+Read-only live Admin verification confirms CardTrader order #200 is an active, picked standard original with intact latest evidence, now offering Send to Click & Drop and explicit manual postage/customs review. Cardmarket #204 offers Retry postage preparation; its previous review error remains retained until an operator retries. A live read-only dry run using its real lines, configured weights/rules and current account services selects exactly OLP1SF, Small Parcel, 260 g, with Signed For barcode required. It has no carrier order identifier; this proof created none.
+
+No production Send/Retry, label purchase, dispatch, payment correction or stock mutation was executed as verification. Existing enabled scheduling may prepare eligible drafts normally. International CardTrader customs/tax automation remains deferred; the operator must review those details before buying postage.
