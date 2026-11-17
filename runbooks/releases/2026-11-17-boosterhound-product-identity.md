@@ -49,3 +49,13 @@ Submitted 2026-11-17T17:41:47.293Z; live verification pending.
 ## Superseded browser expectation
 
 The earlier exact-source validation of 76df67d8 was rejected because the existing browser test asserted that inStock=false removes every quick-add button, which is the reported bug. Commit 70434c01 replaces that expectation with a stronger disposable-local regression: temporarily sell out one seeded SKU, verify in-stock quick-add remains enabled and the sold-out card has no quick-add, then verify stock-only filtering excludes that sold-out card, at both mobile and desktop widths. Exact inventory values are restored in finally. No test is skipped, retry policy altered or timeout relaxed. The previous rejected evidence remains retained in boosterhound-release-20261117-r2.
+
+## Verified completion
+
+GitOps promotion commit: f976489f5642408b11f3c8c4cc60e395c3ee37e4. At 2026-11-17T17:46:42.180Z, three consecutive uncached public checks verified both exact source/digest identities, API health and /gb (all HTTP 200). Nomad deployment 18b5de5a-da67-e9e8-cdb4-f75f75104a9c, job version 340, is successful with both task groups healthy and running.
+
+Read-only live browser verification at 2026-11-17T17:47:30.147Z confirmed available quick-add controls with inStock=true and false at mobile and desktop widths, the Boosterhound footer link, and the Marvel four-deck product's visible/schema title (Set of 4 appears exactly once). All non-GET/HEAD browser requests were blocked; no basket, order, payment, stock or catalogue mutation was performed.
+
+The live Marvel record already explicitly names Set of 4 and its description confirms four decks. No record correction was made. bundle_count metadata is optional additional structure, and a genuine set-level barcode remains absent; do not substitute an individual deck barcode.
+
+The task-owned Cardmarket maintenance drain was resumed with draining=false. Exact validation and both immutable packaged proofs are retained in boosterhound-release-20261117-r3.
