@@ -27,4 +27,12 @@ The task-owned Cardmarket maintenance drain acknowledged zero active jobs before
 
 Retain this task's drain nonce until three consecutive checks prove exact backend source/digest, unchanged storefront source/digest, API health and /gb, and Nomad is healthy. Resume only this task's nonce. The previous immutable backend is the application-only rollback target; no schema rollback is attempted.
 
-Submitted at 2026-11-17T14:09:16.6216362Z. Verified rollout remains pending; image publication or manifest push alone is not success.
+Submitted at 2026-11-17T14:09:16.6216362Z. Image publication or manifest push alone was not treated as success.
+
+## Verified completion
+
+At 14:13:11 UTC, three consecutive public checks verified backend source `85c0415b803a393497d7f348685fedf035818559` and digest `sha256:c53ea1d2af2b366361fd2ade018d83181a4c71487e9d94ace9557cc72dd1d26a`, unchanged storefront source/digest, API health and `/gb` (all HTTP 200). Nomad version 338, deployment `3a5fd129`, is successful; backend allocation `287980a1` is running/healthy and previous allocation completed normally. The managed migration allocation `1736b6a8` completed before service rollout.
+
+Admin returned HTTP 200; unauthenticated purchase-product search returned HTTP 401. This task's maintenance nonce was resumed after healthy rollout, with `draining=false` and zero active jobs. No recipient setting, credential, label purchase, payment or production test order was changed. Full isolated verification retained 4,762 backend unit passes, 633 stock-safety cases exactly once and 143 browser passes with zero unexpected/flaky outcomes. Two existing browser skips and two stock-safety TODOs remain explicit; the additional 88-test PostgreSQL proof also passed.
+
+During this release the operator separately reported absent Click & Drop actions for Cardmarket order #204 and standard CardTrader order #200 (Netherlands). Read-only inspection identified the Cardmarket native-payment gate and the existing CardTrader exclusion. Those shipping changes are not part of this source/image; no order was sent, marked shipped or financially corrected during this deployment. They remain a separately implemented and validated follow-up.
