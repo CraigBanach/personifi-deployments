@@ -36,3 +36,9 @@ Rollback target: ghcr.io/craigbanach/tcg-store-backend@sha256:3b70437160b16966ba
 This task's worker drain acknowledged zero active jobs before GitOps submission. Existing secrets, feature settings and all non-release manifest fields are preserved; config/catalog execution stay false. Require three consecutive uncached exact-digest/source public readiness checks before resuming this task's drain nonce.
 
 Submitted 2026-11-19T14:11:24.002Z; live verification pending.
+
+## Verified completion
+
+At 2026-11-19T14:14:06.885Z, three consecutive uncached checks confirmed the new backend and unchanged storefront exact source/digest identities, API health and /gb, all HTTP 200. This task's Cardmarket maintenance drain was resumed and confirmed not draining with zero active jobs. No marketplace write, order replay, inventory repair or payment was performed for deployment verification. No Cardmarket order was changed by deployment verification.
+
+GitOps promotion commit: bbd41f2853a40cd0c4edb27cdd3fbab401f7048f.
