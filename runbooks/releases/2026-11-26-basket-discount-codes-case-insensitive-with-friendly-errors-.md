@@ -23,3 +23,9 @@ Rollback target: backend ghcr.io/craigbanach/tcg-store-backend@sha256:68f3036190
 Worker drain acknowledged zero active jobs before submission. Every non-release manifest field is preserved; config/catalog execution stay false. Completion requires three consecutive exact-identity readiness checks and a production checkout smoke check (cart, delivery options, Stripe offered, checkout page renders; no payment is created) before the worker resumes.
 
 Submitted 2026-11-26T19:56:19Z; live verification pending.
+
+## Verified completion
+
+At 2026-11-26T19:57:37Z, three consecutive uncached checks confirmed the exact backend and storefront identities, API health and /gb. At 2026-11-26T19:57:50Z the checkout smoke check passed: basket add, GB delivery options, Stripe offered and /gb/checkout rendering the item (test basket emptied; no payment created). The worker drain was resumed with zero active jobs.
+
+GitOps promotion commit: dc777de5cde855b001a03f3d5c3c6c6d368f69c6.
